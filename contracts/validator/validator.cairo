@@ -16,6 +16,18 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from cairo_examples.secp.bigint import BigInt3
 from cairo_examples.secp.secp import verify_ecdsa
 from cairo_examples.secp.secp_ec import EcPoint
+
+####################
+# CONSTS
+####################
+const HELLO = 0x48454c4c4f
+const SIGNATURE_1 = 0x5349474e41545552455f31
+const SIGNATURE_2 = 0x5349474e41545552455f32
+const SIGNATURE_3 = 0x5349474e41545552455f33
+const MULTICALL = 0x4d554c544943414c4c
+const MULTISIG = 0x4d554c5449534947
+const ABSTRACTION = 0x4142535452414354494f4e
+
 ####################
 # INTERFACES
 ####################
@@ -58,6 +70,10 @@ end
 # STORAGE VARIABLES
 ####################
 @storage_var
+func completions(address : felt, contract : felt) -> (completed : felt):
+end
+
+@storage_var
 func private() -> (res : felt):
 end
 
@@ -89,7 +105,7 @@ end
 # EVENTS
 ####################
 @event
-func payday(answer : felt):
+func payday(address : felt, contract : felt):
 end
 
 ####################
@@ -153,9 +169,6 @@ func _is_valid_signature{
 }(hash : felt, signature_len : felt, signature : felt*) -> ():
     let (_public_key) = public.read()
 
-    # This interface expects a signature pointer and length to make
-    # no assumption about signature validation schemes.
-    # But this implementation does, and it expects a (sig_r, sig_s) pair.
     let sig_r = signature[0]
     let sig_s = signature[1]
 
@@ -194,7 +207,7 @@ end
 ####################
 @external
 func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    input : felt
+    input : felt, address : felt
 ) -> (success : felt):
     let (caller) = get_caller_address()
     assert_not_zero(caller)
@@ -207,14 +220,15 @@ func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     assert input = rand
 
     # TODO: give people points
-    payday.emit(input)
+    completions.write(address, HELLO, 1)
+    payday.emit(address, HELLO)
     return (TRUE)
 end
 
 @external
 func validate_signature_1{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(input : felt) -> (success : felt):
+}(input : felt, address : felt) -> (success : felt):
     let (caller) = get_caller_address()
     assert_not_zero(caller)
 
@@ -240,14 +254,15 @@ func validate_signature_1{
     )
 
     # TODO: give people points
-    payday.emit(hash_final)
+    completions.write(address, SIGNATURE_1, 1)
+    payday.emit(address, SIGNATURE_1)
     return (TRUE)
 end
 
 @external
 func validate_signature_2{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(tx_hash : felt, sig_r : felt, sig_s : felt) -> (success : felt):
+}(tx_hash : felt, sig_r : felt, sig_s : felt, address : felt) -> (success : felt):
     alloc_locals
     let (tx_info) = get_tx_info()
 
@@ -274,8 +289,9 @@ func validate_signature_2{
     end
 
     if tx_hash_count == 1:
-        payday.emit(tx_hash)
         dupe_nonce.write(tx_hash=tx_hash, value=2)
+        completions.write(address, SIGNATURE_2, 1)
+        payday.emit(address, SIGNATURE_2)
         return (TRUE)
     end
 
@@ -286,7 +302,7 @@ end
 @external
 func validate_signature_3{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(input : felt) -> (success : felt):
+}(input : felt, address : felt) -> (success : felt):
     alloc_locals
     let (tx_info) = get_tx_info()
     local tx_hash = tx_info.transaction_hash
@@ -302,14 +318,15 @@ func validate_signature_3{
     _is_valid_signature(hash=hash, signature_len=tx_info.signature_len, signature=tx_info.signature)
 
     # TODO: give people points
-    payday.emit(hash)
+    completions.write(address, SIGNATURE_3, 1)
+    payday.emit(address, SIGNATURE_3)
     return (TRUE)
 end
 
 @external
 func validate_multicall{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}() -> (success : felt):
+}(address : felt) -> (success : felt):
     alloc_locals
     let (tx_info) = get_tx_info()
     local tx_hash = tx_info.transaction_hash
@@ -332,8 +349,9 @@ func validate_multicall{
     end
 
     if value == 2:
-        payday.emit(tx_meta)
         multicall_counter.write(tx_meta, value + 1)
+        completions.write(address, MULTICALL, 1)
+        payday.emit(address, MULTICALL)
         return (TRUE)
     end
 
@@ -344,7 +362,7 @@ end
 @external
 func validate_multisig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(filler : felt, input: felt) -> (success : felt):
+}(filler : felt, address : felt, input: felt) -> (success : felt):
     alloc_locals
     assert filler = 1
     let (caller) = get_caller_address()
@@ -356,14 +374,15 @@ func validate_multisig{
     let (count) = _validate_signer_count(caller, input, 0, signers_len, signers)
     assert count = signers_len-1
 
-    payday.emit(count)
+    completions.write(address, MULTISIG, 1)
+    payday.emit(address, MULTISIG)
     return (TRUE)
 end
 
 @external
 func validate_abstraction{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(hash : BigInt3, sig_r : BigInt3, sig_s : BigInt3) -> (success : felt):
+}(hash : BigInt3, sig_r : BigInt3, sig_s : BigInt3, address : felt) -> (success : felt):
     alloc_locals
     let (caller) = get_caller_address()
     assert_not_zero(caller)
@@ -378,6 +397,7 @@ func validate_abstraction{
     let (pub_key) = IAccountAbstraction.get_public_key(contract_address=caller)
     _is_valid_abstraction(hash, pub_key, sig_r, sig_s)
 
-    payday.emit(caller)
+    completions.write(address, ABSTRACTION, 1)
+    payday.emit(address, ABSTRACTION)
     return (TRUE)
 end
