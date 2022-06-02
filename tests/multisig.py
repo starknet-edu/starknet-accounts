@@ -81,7 +81,6 @@ async def test_multicall(
         ],
     )
     
-
     #
     # submit initial multicall transaction
     #

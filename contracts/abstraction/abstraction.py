@@ -23,8 +23,8 @@ VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
 async def main():
     mission_statement()
     print("\t 1) deploy account contract")
-    print("\t 2) pass an array of contract invocations as well as calldata")
-    print("\t 3) such that multiple contract calls are run in the same transaction\u001b[0m\n")
+    print("\t 2) inplement the contract to verify signatures using secp256k1")
+    print("\t 3) contract arguments will need to be split to handle the appropriate bitwidth\u001b[0m\n")
 
     ABSTRACT_PRIV = 0x2f7b9db25111c73326215d8b709b246103f674d95eccbbec8780214ffd69c8fc
     PUB_X = 0x95cd669eb2bd5ede97706551fbe2bc210940ec7797da33dee43814e292f93837
@@ -38,9 +38,9 @@ async def main():
     ]
     for i in range(3):
         calldata[0]["x"]["d{}".format(i)] = PUB_X & MASK
-        PUB_Y >>= SHIFT
-        calldata[0]["y"]["d{}".format(i)] = PUB_Y & MASK
         PUB_X >>= SHIFT
+        calldata[0]["y"]["d{}".format(i)] = PUB_Y & MASK
+        PUB_Y >>= SHIFT
 
     client = Client("testnet")
     account_address = await deploy_testnet("abstraction", calldata)

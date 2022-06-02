@@ -33,7 +33,9 @@ export STARKNET_NETWORK=alpha-goerli
 export VALIDATOR_ADDRESS=0x0613847a0c5f8f0d11d7e6d2493aeab4a79ce9867bb3fad9842c936f2b044478
 ```
 
-This tutorial utilizes [starknet.py](https://github.com/software-mansion/starknet.py). Exercises comes with a helper python script for mission statements, contract deployments and [validator](./contracts/validator) interactions. If you hit a roadblock the first place to look is the deployed validator contract and what it is validating for.
+This tutorial utilizes [starknet.py](https://github.com/software-mansion/starknet.py). Each exercises comes with a helper python script for mission statements, contract deployments and [validator](./contracts/validator) interactions. Deploying contracts can take some time, so we have added a cache of deployed addresses at `contracts/account.json`. If you have made a change to your contract and which to deploy fresh simply delete the line from the accounts file, or set the `ACCOUNT_CACHE` environment variable to false.
+
+The contract stubs and helper scripts will be mising crucial information for you to figure out. The excercises will get increasingly harder as we go. If you hit a roadblock the first place to look is the deployed validator contract and what it is checking for.
 
 ***!!!DON'T CHEAT!!!***
 
@@ -77,7 +79,7 @@ The job of the account contract is to execute arbitrary business logic on behalf
 
 The StarkNet Account model differs from Ethereum [EOAs](https://ethereum.org/en/developers/docs/accounts/#externally-owned-accounts-and-key-pairs) in that there is no hard requirement for the account to be managed by a public/private key pair.
 
-Account abstraction cares more about who(i.e. the contract address) rather than how(i.e. the signature).
+Account abstraction cares more about `who`(i.e. the contract address) rather than `how`(i.e. the signature).
 
 This leaves the ECDSA signature scheme up to the developer and typically implemented using the [pedersen hash](https://docs.starknet.io/docs/Hashing/hash-functions) and native curve for signing:
 
@@ -108,7 +110,7 @@ python3 signature_3.py
 
 ### [MultiCall](./contracts/multicall)
 
-Now that we have implemented the vanilla ECDSA signin mechanisms lets see what account abstraction can really do.
+Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do.
 
 A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block
 
@@ -125,11 +127,11 @@ python3 multicall.py
 
 A `multisig` or multiple signature wallet allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
 
-Multisigs are popular amongst DAOs and decentralized infrastructure because it reduces the dependency on one or a a handful of actors. In a same way it reduces the security concersn that come with only one individual holding the keys to everything.
+Multisigs are popular amongst DAOs and decentralized infrastructure because they reduces the need to depend on only a handful of actors.
 
-The amount of keys in the account and the ammount of keys required to authorize a transaction are completely implementation details.
+The amount of signing keys that belong to the account and the ammount of keys required to authorize a transaction are purely implementation details.
 
-Lets implement a 2/3 multisig account(i.e. 2 signatures are required out of a total 3 signers for a transaction to be executed):
+Lets implement a `2/3 multisig` account(i.e. 2 signatures are required out of a total 3 signers for a transaction to be executed):
 
 ```bash
 cd contracts/multisig
@@ -138,11 +140,11 @@ python3 multisig.py
 
 ### [Abstraction](./contracts/abstraction)
 
-Since StarkNet accounts are simply accounts we can implement any signing mechanism we wish. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create Sign-In architectures utilizing your StarkNet account.
+Since StarkNet accounts are simply accounts we can implement any signing mechanism we wish. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create `Sign-In` architectures using your StarkNet account.
 
-Discussions on novel account architecutres are popping up more and [more](https://vitalik.ca/general/2022/01/26/soulbound.html), and it's looks to be increasingly important tool in your toolkit.
+Discussions on novel account architecutres are popping up more and [more](https://vitalik.ca/general/2022/01/26/soulbound.html), and it looks to be an increasingly important tool the developer toolkit.
 
-For an example of a unique account architecture we will build a contract that handes its signatures scheme with secp256k1 and sha256 instead of the native curve:
+For an example of a unique account architecture we will build a contract that implements it's signatures scheme with the secp256k1 curve and sha256 instead of our native StarkNet curve:
 
 ```bash
 cd contracts/abstraction

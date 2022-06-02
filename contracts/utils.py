@@ -47,7 +47,8 @@ async def print_n_wait(client: Client, invocation: InvokeFunction):
 
 async def deploy_testnet(contract_path="", constructor_args=[]):
     CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
-    if os.stat(ACCOUNT_FILE).st_size > 0:
+    data = dict()
+    if os.stat(ACCOUNT_FILE).st_size > 0 and os.getenv('ACCOUNT_CACHE') is None:
         with open(ACCOUNT_FILE) as json_file:
             data = json.load(json_file)
             if CONTRACT_ADDRESS in data:
@@ -75,10 +76,9 @@ async def deploy_testnet(contract_path="", constructor_args=[]):
     await client.wait_for_tx(deployment_result.hash)
     res = await client.get_transaction(deployment_result.hash)
 
-    account_dict = dict()
-    account_dict[CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
+    data[CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
     with open(ACCOUNT_FILE, 'w') as outfile:
-        json.dump(account_dict, outfile, sort_keys=True, indent=4)
+        json.dump(data, outfile, sort_keys=True, indent=4)
     print("\tSuccess - cached in accounts.json\u001b[0m\n")
 
     return res.transaction.contract_address

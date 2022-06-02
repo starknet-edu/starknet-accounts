@@ -23,9 +23,34 @@ async def main():
     private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
     stark_key = private_to_stark_key(private_key)
 
+    private_key_1 = private_key + 1
+    stark_key_1 = private_to_stark_key(private_key_1)
+
+    private_key_2 = private_key + 2
+    stark_key_2 = private_to_stark_key(private_key_2)
+
     client = Client("testnet")
-    account_address = await deploy_testnet("multisig", [stark_key])
-    contract = await Contract.from_address(account_address, client)
+    signer_1_address = await deploy_testnet("signature_basic", [stark_key])
+    signer_1_contract = await Contract.from_address(signer_1_address, client)
+
+    signer_2_address = await deploy_testnet("signature_basic", [stark_key_1])
+    signer_2_contract = await Contract.from_address(signer_2_address, client)
+
+    signer_3_address = await deploy_testnet("signature_basic", [stark_key_2])
+    signer_3_contract = await Contract.from_address(signer_3_address, client)
+
+    multi = await deploy_testnet("multisig", [3, signer_1_address, signer_2_address, signer_3_address])
+    multi_contract = await Contract.from_address(multi, client)
+    
+    validator_selector = get_selector_from_name("validate_multisig")
+    submit_selector = get_selector_from_name("submit_tx")
+    submit_event_selector = get_selector_from_name("submit")
+
+    inner_calldata=[VALIDATOR_ADDRESS, validator_selector, 1, 1]
+    outer_calldata=[multi, submit_selector, len(inner_calldata), *inner_calldata]
+
+    hash = invoke_tx_hash(signer_1_address, outer_calldata)x``
+    signature = sign(hash, PRIVATE_KEY)
 
 
 asyncio.run(main())
