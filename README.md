@@ -28,9 +28,12 @@ git clone git@github.com:starkware-libs/cairo-examples.git ~/cairo_venv/lib/pyth
 find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec sed -i -e 's/from big/from cairo_examples.secp.big/g' {} \;
 find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec sed -i -e 's/from secp/from cairo_examples.secp.secp/g' {} \;
 
+# set environment variables
 export STARKNET_NETWORK=alpha-goerli
 export VALIDATOR_ADDRESS=0x0613847a0c5f8f0d11d7e6d2493aeab4a79ce9867bb3fad9842c936f2b044478
 ```
+
+This tutorial utilizes [starknet.py](https://github.com/software-mansion/starknet.py). Exercises comes with a helper python script for mission statements, contract deployments and [validator](./contracts/validator) interactions. If you hit a roadblock the first place to look is the deployed validator contract and what it is validating for.
 
 ***!!!DON'T CHEAT!!!***
 
@@ -44,11 +47,11 @@ TL;DR:
 
 ***accounts on StarkNet are simply contracts***
 
-The one caveat for account contract deployments is that they must have a canonical entrypoint denoted with the selector `__execute__`
+The one caveat for account contract deployments is they must have a canonical entrypoint denoted with the selector `__execute__`
 
 ***...and that's it!***
 
-Lets deploy and test the simplest account contract we can. The remainder of this tutorial will using [starknet.py](https://github.com/software-mansion/starknet.py) and each exercise will come with a helper script:
+Lets deploy and test the simplest account contract we can:
 
 ```bash
 cd contracts/hello
@@ -135,3 +138,13 @@ python3 multisig.py
 
 ### [Abstraction](./contracts/abstraction)
 
+Since StarkNet accounts are simply accounts we can implement any signing mechanism we wish. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create Sign-In architectures utilizing your StarkNet account.
+
+Discussions on novel account architecutres are popping up more and [more](https://vitalik.ca/general/2022/01/26/soulbound.html), and it's looks to be increasingly important tool in your toolkit.
+
+For an example of a unique account architecture we will build a contract that handes its signatures scheme with secp256k1 and sha256 instead of the native curve:
+
+```bash
+cd contracts/abstraction
+python3 abstraction.py
+```
