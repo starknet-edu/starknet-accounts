@@ -12,16 +12,18 @@ from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
 VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-
+WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
 
 async def main():
     mission_statement()
-    print("\t 1) deploy account contract with an '__execute__' entrypoint")
-    print("\t 2) find the first two EIP numbers discussing account abstraction")
-    print("\t 3) use the  provided private key to sign the values using the stark curve")
-    print("\t 4) populate the tx_info 'signature' field w/ this signature\n")
-    print("\t 5) invoke the validator via your account contract\n")
+    print("\t 1) find the first two EIP numbers discussing account abstraction")
+    print("\t 2) deploy account contract with an '__execute__' entrypoint")
+    print("\t 3) use the private key to sign the values using the Stark curve")
+    print("\t 4) invoke the validator check with the signature in the tx_info field\n")
 
+    #
+    # MISSION 1
+    #
     INPUT_1 = 2938
     INPUT_2 = 4337
     print(
@@ -31,13 +33,18 @@ async def main():
         "Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{}\u001b[0m\n"
         .format(INPUT_2))
 
-    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
-    stark_key = private_to_stark_key(private_key)
-
+    #
+    # MISSION 2
+    #
     client = Client("testnet")
     account_address = await deploy_testnet("signature_1", [])
     contract = await Contract.from_address(account_address, client)
 
+    #
+    # MISSION 3
+    #
+    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
+    stark_key = private_to_stark_key(private_key)
     selector = get_selector_from_name("validate_signature_1")
 
     hash = pedersen_hash(INPUT_1, INPUT_2)
@@ -47,8 +54,12 @@ async def main():
     prepared = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,
         selector=selector,
-        calldata_len=2,
-        calldata=[INPUT_1, INPUT_2])
+        calldata_len=3,
+        calldata=[INPUT_1, INPUT_2, WALLET_ADDRESS])
+    
+    #
+    # MISSION 4
+    #
     invocation = await prepared.invoke(signature=signature, max_fee=0)
 
     await print_n_wait(client, invocation)

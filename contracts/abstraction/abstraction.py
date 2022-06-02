@@ -18,18 +18,23 @@ SHIFT = 86
 BASE = 2**SHIFT
 MASK = BASE - 1
 VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-
+WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
 
 async def main():
     mission_statement()
-    print("\t 1) deploy account contract")
-    print("\t 2) inplement the contract to verify signatures using secp256k1")
-    print("\t 3) contract arguments will need to be split to handle the appropriate bitwidth\u001b[0m\n")
+    print("\t 1) implement a contract to verify signatures using secp256k1")
+    print("\t 2) deploy account contract with formatted public key")
+    print("\t 3) obtain sha256 hash of data")
+    print("\t 4) format hash and signature with appropriate bitwidths")
+    print("\t 5) invoke the verifier function\u001b[0m\n")
 
     ABSTRACT_PRIV = 0x2f7b9db25111c73326215d8b709b246103f674d95eccbbec8780214ffd69c8fc
     PUB_X = 0x95cd669eb2bd5ede97706551fbe2bc210940ec7797da33dee43814e292f93837
     PUB_Y = 0x339d4e13c088c0a26c176b3d0505177a70f50345c874a4d4cca1c8b1f05b72bd
 
+    #
+    # MISSION 2
+    #
     calldata=[
         {
             "x": {"d0": "", "d1": "", "d2": ""}, 
@@ -46,6 +51,9 @@ async def main():
     account_address = await deploy_testnet("abstraction", calldata)
     contract = await Contract.from_address(account_address, client)
 
+    #
+    # MISSION 3
+    #
     sk = SigningKey.from_string(ABSTRACT_PRIV.to_bytes(32, 'big'), curve=SECP256k1, hashfunc=sha256)
 
     data = b"Patience is bitter, but its fruit is sweet..."
@@ -57,7 +65,9 @@ async def main():
     sig_r = int.from_bytes(signature[:32], "big")
     sig_s = int.from_bytes(signature[32:], "big")
 
-    selector = get_selector_from_name("validate_abstraction")
+    #
+    # MISSION 4
+    #
     bigHash=[]
     bigR=[]
     bigS=[]
@@ -73,9 +83,14 @@ async def main():
 
     calldata = [*bigHash, *bigR, *bigS]
 
+    #
+    # MISSION 5
+    #
+    (nonce, ) = await contract.functions["get_nonce"].call()
     prepared = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,
-        selector=selector,
+        selector=get_selector_from_name("validate_abstraction"),
+        nonce=nonce,
         calldata_len=len(calldata),
         calldata=calldata
     )

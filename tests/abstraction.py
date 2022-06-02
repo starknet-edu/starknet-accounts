@@ -15,6 +15,7 @@ MASK = BASE - 1
 ABSTRACTION_FILE = os.path.join("../contracts/abstraction", "abstraction.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
 
+DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
 PUBLIC_KEY = 1397467974901608740509397132501478376338248400622004458128166743350896051882
 INPUT_1 = 2938
@@ -106,10 +107,15 @@ async def test_abstraction(
     calldata.append(sig_s & MASK)
     sig_s >>= SHIFT
 
+    calldata.append(DUMMY_ACCOUNT)
+
+    nonce_info = await abstraction_contract.get_nonce().call()
+    nonce = nonce_info.result.res
+
     exec_info = await abstraction_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
+        nonce=nonce,
         calldata=calldata,
     ).invoke()
     assert exec_info.result.retdata[0] == 1
-

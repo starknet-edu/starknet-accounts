@@ -17,6 +17,7 @@ from starkware.starknet.core.os.transaction_hash.transaction_hash import Transac
 MULTICALL_FILE = os.path.join("../contracts/multicall", "multicall.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
 
+DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
 PUBLIC_KEY = 1397467974901608740509397132501478376338248400622004458128166743350896051882
 INPUT_1 = 2938
@@ -47,18 +48,22 @@ async def test_multicall(
 ):
     selector = get_selector_from_name("validate_multicall")
     call_array=[
-        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 0, 0),
-        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 0, 0),
-        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 0, 0),
+        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 0, 1),
+        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 1, 1),
+        multicall_contract.AccountCallArray(validator_contract.contract_address, selector, 2, 1),
     ]
-    calldata=[len(call_array), validator_contract.contract_address, selector, 0, 0, validator_contract.contract_address, selector, 0, 0, validator_contract.contract_address, selector, 0, 0, 0]
+    nonce_info = await multicall_contract.get_nonce().call()
+    nonce = nonce_info.result.res
+
+    calldata=[nonce, len(call_array), *call_array[0], *call_array[1], *call_array[2], 3, DUMMY_ACCOUNT, DUMMY_ACCOUNT, DUMMY_ACCOUNT]
 
     hash = invoke_tx_hash(multicall_contract.contract_address, calldata)
     signature = sign(hash, PRIVATE_KEY)
 
     exec_info = await multicall_contract.__execute__(
+        nonce=nonce,
         call_array=call_array,
-        calldata=[],
+        calldata=[DUMMY_ACCOUNT, DUMMY_ACCOUNT, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info.result.response[0] == 0
     assert exec_info.result.response[1] == 0

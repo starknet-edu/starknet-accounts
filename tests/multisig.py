@@ -19,6 +19,7 @@ MULTISIG_FILE = os.path.join("../contracts/multisig", "multisig.cairo")
 SIGNATURE_BASIC_FILE = os.path.join("../contracts/multisig", "signature_basic.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
 
+DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
 PUBLIC_KEY = 1397467974901608740509397132501478376338248400622004458128166743350896051882
 INPUT_1 = 2938
@@ -88,8 +89,11 @@ async def test_multicall(
     submit_selector = get_selector_from_name("submit_tx")
     submit_event_selector = get_selector_from_name("submit")
 
-    inner_calldata=[validator_contract.contract_address, validator_selector, 1, 1]
-    outer_calldata=[multisig_contract.contract_address, submit_selector, len(inner_calldata), *inner_calldata]
+    nonce_info = await signer_1.get_nonce().call()
+    nonce = nonce_info.result.res
+
+    inner_calldata=[validator_contract.contract_address, validator_selector, 2, 1, DUMMY_ACCOUNT]
+    outer_calldata=[multisig_contract.contract_address, submit_selector, nonce, len(inner_calldata), *inner_calldata]
 
     hash = invoke_tx_hash(signer_1.contract_address, outer_calldata)
     signature = sign(hash, PRIVATE_KEY)
@@ -97,6 +101,7 @@ async def test_multicall(
     exec_info_1 = await signer_1.__execute__(
         contract_address=multisig_contract.contract_address,
         selector=submit_selector,
+        nonce=nonce,
         calldata=inner_calldata,
     ).invoke(signature=signature)
 
@@ -110,13 +115,17 @@ async def test_multicall(
     confirm_selector = get_selector_from_name("confirm_tx")
     confirm_event_selector = get_selector_from_name("confirm")
 
-    calldata_2=[multisig_contract.contract_address, confirm_selector, 1, tx_index]
+    nonce_2_info = await signer_2.get_nonce().call()
+    nonce_2 = nonce_2_info.result.res
+
+    calldata_2=[multisig_contract.contract_address, confirm_selector, nonce_2, 1, tx_index]
     hash_2 = invoke_tx_hash(signer_2.contract_address, calldata_2)
     signature_2 = sign(hash_2, priv_1)
 
     exec_info_2 = await signer_2.__execute__(
         contract_address=multisig_contract.contract_address,
         selector=confirm_selector,
+        nonce=nonce_2,
         calldata=[tx_index],
     ).invoke(signature=signature_2)
 
@@ -126,13 +135,17 @@ async def test_multicall(
     #
     # second transaction confirmation
     #
-    calldata_3=[multisig_contract.contract_address, confirm_selector, 1, tx_index]
+    nonce_3_info = await signer_3.get_nonce().call()
+    nonce_3 = nonce_3_info.result.res
+
+    calldata_3=[multisig_contract.contract_address, confirm_selector, nonce_3, 1, tx_index]
     hash_3 = invoke_tx_hash(signer_3.contract_address, calldata_3)
     signature_3 = sign(hash_3, priv_2)
 
     exec_info_3 = await signer_3.__execute__(
         contract_address=multisig_contract.contract_address,
         selector=confirm_selector,
+        nonce=nonce_3,
         calldata=[tx_index],
     ).invoke(signature=signature_3)
 
@@ -144,7 +157,7 @@ async def test_multicall(
     #
     execute_selector = get_selector_from_name("__execute__")
     execute_event_selector = get_selector_from_name("execute")
-    exec_calldata=[multisig_contract.contract_address, execute_selector, 1, tx_index]
+    exec_calldata=[multisig_contract.contract_address, execute_selector, nonce+1, 1, tx_index]
 
     exec_hash = invoke_tx_hash(signer_1.contract_address, exec_calldata)
     exec_signature = sign(exec_hash, PRIVATE_KEY)
@@ -152,6 +165,7 @@ async def test_multicall(
     exec_info = await signer_1.__execute__(
         contract_address=multisig_contract.contract_address,
         selector=execute_selector,
+        nonce=nonce+1,
         calldata=[tx_index],
     ).invoke(signature=exec_signature)
 

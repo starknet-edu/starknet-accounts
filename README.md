@@ -30,8 +30,8 @@ find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec 
 
 # set environment variables
 export STARKNET_NETWORK=alpha-goerli
-export VALIDATOR_ADDRESS=0x0613847a0c5f8f0d11d7e6d2493aeab4a79ce9867bb3fad9842c936f2b044478
-export WALLET_ADDRSS=<e.g. ARGENT/BRAVOS wallet address>
+export VALIDATOR_ADDRESS=0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389f51abd632de
+export WALLET_ADDRESS=<e.g. ARGENT/BRAVOS wallet address>
 ```
 
 This tutorial uses [starknet.py](https://github.com/software-mansion/starknet.py). Each exercise comes with a python helper script which includes:
@@ -40,11 +40,11 @@ This tutorial uses [starknet.py](https://github.com/software-mansion/starknet.py
 - contract deployment functions
 - [validator](./contracts/validator) interactions
 
-Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set the `ACCOUNT_CACHE` environment variable to false.
+Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`.
 
 The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult.
 
-If you hit a roadblock the first place to look is the deployed validator contract and what it is checking for.
+If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389f51abd632de) and what it is checking for.
 
 ***!!!DON'T CHEAT!!!***
 

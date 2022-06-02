@@ -12,15 +12,19 @@ from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
 VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-
+WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
 
 async def main():
     mission_statement()
-    print("\t 1) deploy account contract")
-    print("\t 2) store a public signing key for the stark curve in the account")
-    print("\t 3) implement the OpenZeppelin interface for 'get_nonce'")
-    print("\t 4) manually sign the calldata and pass the signature in the contract invocation\u001b[0m\n")
+    print("\t 1) implement account contract interface 'get_nonce'")
+    print("\t 2) implement account contract interface 'get_signer'")
+    print("\t 3) deploy account contract")
+    print("\t 4) sign calldata")
+    print("\t 5) invoke check\u001b[0m\n")
 
+    #
+    # MISSION 3
+    #
     private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
     stark_key = private_to_stark_key(private_key)
 
@@ -28,9 +32,12 @@ async def main():
     account_address = await deploy_testnet("signature_3", [stark_key])
     contract = await Contract.from_address(account_address, client)
 
+    #
+    # MISSION 4
+    #
     (nonce, ) = await contract.functions["get_nonce"].call()
     selector = get_selector_from_name("validate_signature_3")
-    calldata = [VALIDATOR_ADDRESS, selector, 1, nonce]
+    calldata = [VALIDATOR_ADDRESS, selector, 2, nonce, WALLET_ADDRESS]
 
     hash = invoke_tx_hash(account_address, calldata)
     hash_final = pedersen_hash(hash, nonce)
@@ -39,8 +46,12 @@ async def main():
     prepared = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,
         selector=selector,
-        calldata_len=1,
-        calldata=[nonce])
+        calldata_len=2,
+        calldata=[nonce, WALLET_ADDRESS])
+    
+    #
+    # MISSION 5
+    #
     invocation = await prepared.invoke(signature=signature, max_fee=0)
 
     await print_n_wait(client, invocation)

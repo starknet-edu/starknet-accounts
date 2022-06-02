@@ -161,6 +161,14 @@ func get_multicall_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (value)
 end
 
+@view
+func get_completions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    address : felt, contract : felt
+) -> (completed : felt):
+    let (completed) = completions.read(address, contract)
+    return (completed)
+end
+
 ####################
 # INTERNAL FUNCTIONS
 ####################
@@ -219,7 +227,6 @@ func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     let (rand) = random.read()
     assert input = rand
 
-    # TODO: give people points
     completions.write(address, HELLO, 1)
     payday.emit(address, HELLO)
     return (TRUE)
@@ -253,7 +260,6 @@ func validate_signature_1{
         signature_s=tx_info.signature[1],
     )
 
-    # TODO: give people points
     completions.write(address, SIGNATURE_1, 1)
     payday.emit(address, SIGNATURE_1)
     return (TRUE)
@@ -265,6 +271,7 @@ func validate_signature_2{
 }(tx_hash : felt, sig_r : felt, sig_s : felt, address : felt) -> (success : felt):
     alloc_locals
     let (tx_info) = get_tx_info()
+    assert tx_info.signature_len = 2
 
     let (caller) = get_caller_address()
     assert_not_zero(caller)
@@ -289,13 +296,11 @@ func validate_signature_2{
     end
 
     if tx_hash_count == 1:
-        dupe_nonce.write(tx_hash=tx_hash, value=2)
         completions.write(address, SIGNATURE_2, 1)
         payday.emit(address, SIGNATURE_2)
         return (TRUE)
     end
 
-    # TODO: give people points
     return (FALSE)
 end
 
@@ -317,7 +322,6 @@ func validate_signature_3{
 
     _is_valid_signature(hash=hash, signature_len=tx_info.signature_len, signature=tx_info.signature)
 
-    # TODO: give people points
     completions.write(address, SIGNATURE_3, 1)
     payday.emit(address, SIGNATURE_3)
     return (TRUE)
@@ -349,13 +353,11 @@ func validate_multicall{
     end
 
     if value == 2:
-        multicall_counter.write(tx_meta, value + 1)
         completions.write(address, MULTICALL, 1)
         payday.emit(address, MULTICALL)
         return (TRUE)
     end
 
-    # TODO: give people points
     return (FALSE)
 end
 

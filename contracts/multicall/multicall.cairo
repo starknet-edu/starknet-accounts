@@ -25,6 +25,22 @@ struct AccountCallArray:
 end
 
 ####################
+# STORAGE VARIABLES
+####################
+@storage_var
+func account_nonce() -> (res : felt):
+end
+
+####################
+# GETTERS
+####################
+@view
+func get_nonce{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+    let (res) = account_nonce.read()
+    return (res)
+end
+
+####################
 # INTERNAL FUNCTIONS
 ####################
 func _from_call_array_to_call{syscall_ptr : felt*}(
@@ -82,7 +98,7 @@ end
 @external
 func __execute__{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(call_array_len : felt, call_array : AccountCallArray*, calldata_len : felt, calldata : felt*) -> (
+}(nonce : felt, call_array_len : felt, call_array : AccountCallArray*, calldata_len : felt, calldata : felt*) -> (
     response_len : felt, response : felt*
 ):
     alloc_locals

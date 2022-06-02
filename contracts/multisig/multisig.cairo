@@ -21,7 +21,7 @@ end
 ####################
 @contract_interface
 namespace IAccount:
-    func get_signer() -> (res : felt):
+    func is_valid_signature(hash : felt, signature_len : felt, signature : felt*):
     end
 end
 
@@ -82,6 +82,9 @@ end
 ####################
 # CONSTRUCTOR
 ####################
+#
+# MISSION 1
+#
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owners_len : felt, owners : felt*
@@ -96,6 +99,9 @@ end
 ####################
 # GETTERS
 ####################
+#
+# MISSION 2
+#
 @view
 func get_confirmations{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(tx_index : felt) -> (res : felt):
     let (res) = tx_confirms.read(tx_index)
@@ -157,7 +163,7 @@ func _spread_calldata{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         return ()
     end
 
-    transaction_calldata.write(tx_index, calldata_index, [calldata])
+    transaction_calldata.write(tx_index, calldata_index, calldata[calldata_index])
 
     _spread_calldata(tx_index, calldata_index + 1, calldata_len, calldata)
     return ()
@@ -194,24 +200,19 @@ end
 ####################
 # EXTERNAL FUNCTIONS
 ####################
+#
+# MISSION 3
+#
 @external
 func submit_tx{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
 }(contract_address : felt, function_selector : felt, calldata_len : felt, calldata : felt*):
     alloc_locals
     _require_owner()
-
+    
     let (caller) = get_caller_address()
     let (tx_info) = get_tx_info()
-
-    let sig_r = tx_info.signature[0]
-    let sig_s = tx_info.signature[1]
-
-    let (pub_key) = IAccount.get_signer(contract_address=caller)
-
-    verify_ecdsa_signature(
-        message=tx_info.transaction_hash, public_key=pub_key, signature_r=sig_r, signature_s=sig_s
-    )
+    IAccount.is_valid_signature(caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
 
     let (tx_index) = curr_tx_index.read()
     transactions.write(tx_index, Transaction(contract_address, function_selector, calldata_len))
@@ -223,6 +224,9 @@ func submit_tx{
     return ()
 end
 
+#
+# MISSION 4
+#
 @external
 func confirm_tx{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
@@ -239,15 +243,7 @@ func confirm_tx{
 
     let (caller) = get_caller_address()
     let (tx_info) = get_tx_info()
-
-    let sig_r = tx_info.signature[0]
-    let sig_s = tx_info.signature[1]
-
-    let (pub_key) = IAccount.get_signer(contract_address=caller)
-
-    verify_ecdsa_signature(
-        message=tx_info.transaction_hash, public_key=pub_key, signature_r=sig_r, signature_s=sig_s
-    )
+    IAccount.is_valid_signature(caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
 
     let (confirmed) = has_confirmed.read(tx_index, caller)
     assert confirmed = FALSE
@@ -259,6 +255,9 @@ func confirm_tx{
     return ()
 end
 
+#
+# MISSION 5
+#
 @external
 func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     tx_index : felt

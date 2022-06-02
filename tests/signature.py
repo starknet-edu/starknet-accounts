@@ -19,6 +19,7 @@ SIGNATURE_2_FILE = os.path.join("../contracts/signature", "signature_2.cairo")
 SIGNATURE_3_FILE = os.path.join("../contracts/signature", "signature_3.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
 
+DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
 PUBLIC_KEY = 1397467974901608740509397132501478376338248400622004458128166743350896051882
 INPUT_1 = 2938
@@ -69,7 +70,7 @@ async def test_signature_1(
     exec_info = await signature_1_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
-        calldata=[INPUT_1, INPUT_2],
+        calldata=[INPUT_1, INPUT_2, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info.result.retdata[0] == 1
 
@@ -79,7 +80,7 @@ async def test_signature_2(
     signature_2_contract: StarknetContract,
 ):
     selector = get_selector_from_name("validate_signature_2")
-    calldata=[validator_contract.contract_address, selector, 1, 1]
+    calldata=[validator_contract.contract_address, selector, 2, 1, DUMMY_ACCOUNT]
 
     hash = invoke_tx_hash(signature_2_contract.contract_address, calldata)
     signature = sign(hash, PRIVATE_KEY)
@@ -87,14 +88,14 @@ async def test_signature_2(
     exec_info_1 = await signature_2_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
-        calldata=[hash, 1],
+        calldata=[hash, 1, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info_1.result.retdata[0] == 0
 
     exec_info_2 = await signature_2_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
-        calldata=[hash, 2],
+        calldata=[hash, 2, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info_2.result.retdata[0] == 1
 
@@ -108,7 +109,7 @@ async def test_signature_3(
     nonce = nonce_info.result.res
 
     selector = get_selector_from_name("validate_signature_3")
-    calldata=[validator_contract.contract_address, selector, 1, nonce]
+    calldata=[validator_contract.contract_address, selector, 2, nonce, DUMMY_ACCOUNT]
 
     hash = invoke_tx_hash(signature_3_contract.contract_address, calldata)
     hash_final = pedersen_hash(hash, nonce)
@@ -118,6 +119,6 @@ async def test_signature_3(
     exec_info = await signature_3_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
-        calldata=[nonce],
+        calldata=[nonce, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info.result.retdata[0] == 1

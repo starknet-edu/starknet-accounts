@@ -13,6 +13,8 @@ MAX_FEE = 0
 TESTNET = from_bytes(b"SN_GOERLI")
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNT_FILE = os.path.join(ROOT_DIR, 'account.json')
+PAYDAY = get_selector_from_name("payday")
+SUBMIT_TX = get_selector_from_name("submit")
 
 def invoke_tx_hash(addr, calldata):
     exec_selector = get_selector_from_name("__execute__")
@@ -33,21 +35,39 @@ def mission_statement():
 
 async def print_n_wait(client: Client, invocation: InvokeFunction):
     print("\u001b[35mTransaction Hash: {}\u001b[0m\n".format(invocation.hash))
-    await invocation.wait_for_acceptance()
 
-    res = await client.get_transaction_status(invocation.hash)
-    if "ACCEPT" in res["tx_status"]:
-        print("\u001b[32;1mTx Results: Payday-{}".format(res["tx_status"]))
+    try:
+        await invocation.wait_for_acceptance()
+    except Exception as e:
+        print("\u001b[31mInvocation error:")
+        print(e)
+        print("\u001b[0m\n")
+
+    res = await client.get_transaction_receipt(invocation.hash)
+
+    if "ACCEPT" in str(res.status):
+        print("\u001b[32;1mTx Results: {}\u001b[0m".format(res.status))
+        for ev in res.events:
+            if ev.keys[0] == SUBMIT_TX and len(res.events) == 1:
+                return ev.data
+            if ev.keys[0] == PAYDAY:
+                print("\u001b[32;1mPayday Results: PAYDAY!!!\u001b[0m\n")
+                return ev.data
+        print("\u001b[33;1mPayday Results: no payday\n")
+
     else:
-        print("\u001b[31;1mTx Results: {}".format(res["tx_status"]))
+        print("\u001b[31;1mTx Results: {}".format(res.status))
     
     print("\u001b[0m")
 
     return
 
-async def deploy_testnet(contract_path="", constructor_args=[]):
-    CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
+async def deploy_testnet(contract_path="", constructor_args=[], additional_data=None):
     data = dict()
+    CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
+    if additional_data:
+        CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
+        
     if os.stat(ACCOUNT_FILE).st_size > 0 and os.getenv('ACCOUNT_CACHE') is None:
         with open(ACCOUNT_FILE) as json_file:
             data = json.load(json_file)
@@ -66,6 +86,7 @@ async def deploy_testnet(contract_path="", constructor_args=[]):
     os.system("rm {}_compiled.json".format(contract_path))
 
     if not deployment_result.hash:
+        print("\u001b[31mFailed to deploy contract\u001b[0m\n")
         raise ValueError("Failed to deploy contract")
         return ""
 

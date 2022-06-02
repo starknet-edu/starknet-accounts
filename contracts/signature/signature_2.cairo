@@ -24,6 +24,9 @@ end
 ####################
 # GETTERS
 ####################
+#
+# MISSION 1
+#
 @view
 func is_valid_signature{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
@@ -47,17 +50,16 @@ end
 func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     contract_address : felt, selector : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
-    # assert calldata_len = 2
-
     let (tx_info) = get_tx_info()
 
     let (vec : felt*) = alloc()
     assert [vec] = calldata[0]
     assert [vec + 1] = tx_info.signature[0]
     assert [vec + 2] = tx_info.signature[1]
+    assert [vec + 3] = calldata[1]
 
     let (retdata_len : felt, retdata : felt*) = call_contract(
-        contract_address=contract_address, function_selector=selector, calldata_size=3, calldata=vec
+        contract_address=contract_address, function_selector=selector, calldata_size=4, calldata=vec
     )
 
     return (retdata_len=retdata_len, retdata=retdata)

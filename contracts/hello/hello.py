@@ -12,7 +12,7 @@ from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
 VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-
+WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
 
 async def main():
     mission_statement()
@@ -20,22 +20,26 @@ async def main():
     print("\t 2) fetch the 'random' storage_variable from the validator contract")
     print("\t 3) pass 'random' via calldata to your account contract\u001b[0m\n")
 
+    #
+    # MISSION 1
+    #
     client = Client("testnet")
     account_address = await deploy_testnet("hello", [])
     contract = await Contract.from_address(account_address, client)
+    
+    #
+    # MISSION 2
+    #
     validator_contract = await Contract.from_address(VALIDATOR_ADDRESS, client)
-
-    selector = get_selector_from_name("validate_hello")
     (random, ) = await validator_contract.functions["get_random"].call()
 
     prepared = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,
-        selector=selector,
-        calldata_len=1,
-        calldata=[random])
+        selector=get_selector_from_name("validate_hello"),
+        calldata_len=2,
+        calldata=[random, WALLET_ADDRESS]) # MISSION 3
     invocation = await prepared.invoke(max_fee=0)
 
     await print_n_wait(client, invocation)
-
 
 asyncio.run(main())

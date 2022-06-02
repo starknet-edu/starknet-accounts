@@ -62,11 +62,17 @@ end
 # EXTERNAL FUNCTIONS
 ####################
 @external
-func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    contract_address : felt, selector : felt, calldata_len : felt, calldata : felt*
+func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*}(
+    contract_address : felt, selector : felt, nonce : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
     let (tx_info) = get_tx_info()
     assert_not_zero(tx_info.signature_len)
+
+    is_valid_signature(tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
+
+    let (curr_nonce) = account_nonce.read()
+    assert curr_nonce = nonce
+    account_nonce.write(curr_nonce+1)
 
     let (retdata_len : felt, retdata : felt*) = call_contract(
         contract_address=contract_address,

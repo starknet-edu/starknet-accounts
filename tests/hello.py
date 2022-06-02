@@ -9,6 +9,8 @@ from starkware.starkware_utils.error_handling import StarkException
 CONTRACT_FILE = os.path.join("../contracts/hello", "hello.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
 
+DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
+
 @pytest.fixture
 async def starknet() -> Starknet:
     return await Starknet.empty()
@@ -37,7 +39,7 @@ async def test_hello(
     exec_info = await hello_contract.__execute__(
         contract_address=validator_contract.contract_address,
         selector=selector,
-        calldata=[rand_exec_info.result.rand],
+        calldata=[rand_exec_info.result.rand, DUMMY_ACCOUNT],
     ).invoke()
     assert exec_info.result.retdata[0] == 1
 

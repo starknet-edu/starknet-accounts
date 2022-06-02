@@ -12,27 +12,31 @@ from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 
 VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-
+WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
 
 async def main():
     mission_statement()
-    print("\t 1) deploy account contract with an '__execute__' entrypoint")
-    print("\t 2) store the public signing key for the stark curve in the account")
-    print("\t 3) implement the OpenZeppelin interface for 'is_valid_signature'")
-    print("\t 4) sign the calldata")
-    print("\t 5) populate the tx_info 'signature' field w/ this signature\n")
-    print("\t 6) invoke the validator via your account contract\u001b[0m\n")
+    print("\t 1) implement account contract interface 'is_valid_signature'")
+    print("\t 2) deploy account contract with an '__execute__' entrypoint init w/ the provided public key")
+    print("\t 3) sign the calldata expected by the validator")
+    print("\t 4) invoke the validator check with the signature in the tx_info field")
+    print("\t 5) call until you hit paydirt\u001b[0m\n")
 
+    #
+    # MISSION 2
+    #
+    client = Client("testnet")
     private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
     stark_key = private_to_stark_key(private_key)
-
-    client = Client("testnet")
     account_address = await deploy_testnet("signature_2", [stark_key])
     contract = await Contract.from_address(account_address, client)
-    validator_contract = await Contract.from_address(VALIDATOR_ADDRESS, client)
 
+    #
+    # MISSION 3
+    #
+    validator_contract = await Contract.from_address(VALIDATOR_ADDRESS, client)
     selector = get_selector_from_name("validate_signature_2")
-    calldata = [VALIDATOR_ADDRESS, selector, 1, 1]
+    calldata = [VALIDATOR_ADDRESS, selector, 2, 1, WALLET_ADDRESS]
 
     hash = invoke_tx_hash(account_address, calldata)
     signature = sign(hash, private_key)
@@ -41,40 +45,27 @@ async def main():
         contract_address=VALIDATOR_ADDRESS,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key)])
+        calldata=[hash, random.randint(0, private_key), WALLET_ADDRESS])
+
+    #
+    # MISSION 4
+    #
     invocation1 = await prepared1.invoke(signature=signature, max_fee=0)
 
-    print("Transaction Hash: ", invocation1.hash)
-    print("\tHe that can have patience can have what he will....\n")
-    await invocation1.wait_for_acceptance()
+    await print_n_wait(client, invocation1)
 
-    (dupe, ) = await validator_contract.functions["get_dupe_nonce"].call(
-        tx_hash=hash)
-
-    if dupe == 2:
-        print("\033[92mDupe Nonce: {}\033[0m\n".format(dupe))
-        return
-    else:
-        print("\033[91mDupe Nonce: {}\033[0m\n".format(dupe))
-
+    #
+    # MISSION 5
+    #
     prepared2 = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key)])
+        calldata=[hash, random.randint(0, private_key), WALLET_ADDRESS])
     invocation2 = await prepared2.invoke(signature=signature, max_fee=0)
 
-    print("Transaction Hash: ", invocation2.hash)
-    print("\tHe that can have patience can have what he will....\n")
-    await invocation2.wait_for_acceptance()
+    await print_n_wait(client, invocation2)
 
-    (dupe, ) = await validator_contract.functions["get_dupe_nonce"].call(
-        tx_hash=hash)
-
-    if dupe == 2:
-        print("\033[92mDupe Nonce: {}\033[0m\n".format(dupe))
-    else:
-        print("\033[91mDupe Nonce: {}\033[0m\n".format(dupe))
 
 
 asyncio.run(main())

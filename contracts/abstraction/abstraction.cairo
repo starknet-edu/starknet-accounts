@@ -15,6 +15,10 @@ from cairo_examples.secp.secp_ec import EcPoint
 func public_key() -> (public_key_pt : EcPoint):
 end
 
+@storage_var
+func account_nonce() -> (res : felt):
+end
+
 ####################
 # CONSTRUCTOR
 ####################
@@ -29,6 +33,9 @@ end
 ####################
 # GETTERS
 ####################
+#
+# MISSION 1
+#
 @view
 func is_valid_signature{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     hash : BigInt3, sig_r : BigInt3, sig_s : BigInt3
@@ -42,6 +49,12 @@ func is_valid_signature{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
 end
 
 @view
+func get_nonce{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+    let (res) = account_nonce.read()
+    return (res)
+end
+
+@view
 func get_public_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (pub_key : EcPoint):
     let (pub_key) = public_key.read()
     return (pub_key)
@@ -52,8 +65,12 @@ end
 ####################
 @external
 func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    contract_address : felt, selector : felt, calldata_len : felt, calldata : felt*
+    contract_address : felt, selector : felt, nonce : felt, calldata_len : felt, calldata : felt*
 ) -> (retdata_len : felt, retdata : felt*):
+    let (curr_nonce) = account_nonce.read()
+    assert curr_nonce = nonce
+    account_nonce.write(curr_nonce+1)
+
     let (retdata_len : felt, retdata : felt*) = call_contract(
         contract_address=contract_address,
         function_selector=selector,
