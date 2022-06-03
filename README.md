@@ -1,20 +1,15 @@
 <div align="center">
     <img src="./misc/abstract.jpg" style="width: 350px">
     <h1>StarkNet Account Abstraction</h1>
-</div>
 
-<div align="center">
-<h2>Exercises</h2>
-
-|Topic|Code|
+|Exercise|Topic|
 |---|---|
-|hello account world|[hello](contracts/hello)|
-|signature handling|[signature](contracts/signature)|
-|multiple contract calls|[multicall](contracts/multicall)|
-|multiple signatures|[multisig](contracts/multisig)|
-|account abstraction concepts|[abstraction](contracts/abstraction)|
+|[hello](contracts/hello)|hello account world|
+|[signature](contracts/signature)|handling Stark signatures|
+|[multicall](contracts/multicall)|multiple contract call account|
+|[multisig](contracts/multisig)|multiple signature account
+|[abstraction](contracts/abstraction)|unique account architecture|
 </div>
-
 
 # Setup
 
