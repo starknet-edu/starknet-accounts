@@ -62,7 +62,7 @@ func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     let (vec : felt*) = alloc()
     assert [vec] = _current_nonce + 1
-    assert [vec+1] = calldata[1]
+    assert [vec + 1] = calldata[1]
 
     let (retdata_len : felt, retdata : felt*) = call_contract(
         contract_address=contract_address, function_selector=selector, calldata_size=2, calldata=vec

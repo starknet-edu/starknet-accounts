@@ -57,10 +57,10 @@ end
 namespace IMultiSig:
     func get_confirmations(tx_index : felt) -> (res : felt):
     end
-    
+
     func get_num_owners() -> (res : felt):
     end
-    
+
     func get_owners() -> (signers_len : felt, signers : felt*):
     end
 
@@ -155,9 +155,9 @@ func get_completions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 end
 
 @view
-func get_points{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(address : felt) -> (
-    total : felt
-):
+func get_points{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    address : felt
+) -> (total : felt):
     let (total) = points.read(address)
     return (total)
 end
@@ -194,7 +194,6 @@ func get_multicall_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (value)
 end
 
-
 ####################
 # INTERNAL FUNCTIONS
 ####################
@@ -219,9 +218,7 @@ func _is_valid_signature_full{
     let (_public_key) = public.read()
     assert_not_equal(pub, _public_key)
 
-    verify_ecdsa_signature(
-        message=hash, public_key=pub, signature_r=sig_r, signature_s=sig_s
-    )
+    verify_ecdsa_signature(message=hash, public_key=pub, signature_r=sig_r, signature_s=sig_s)
 
     return ()
 end
@@ -243,8 +240,10 @@ func _validate_signer_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
         return (0)
     end
 
-    let (rest) = _validate_signer_count(addr, tx_index, agg+1, signers_len, signers)
-    let (confirmed) = IMultiSig.get_owner_confirmed(contract_address=addr, tx_index=tx_index, owner=signers[agg])
+    let (rest) = _validate_signer_count(addr, tx_index, agg + 1, signers_len, signers)
+    let (confirmed) = IMultiSig.get_owner_confirmed(
+        contract_address=addr, tx_index=tx_index, owner=signers[agg]
+    )
 
     return (confirmed + rest)
 end
@@ -440,7 +439,7 @@ end
 @external
 func validate_multisig{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(filler : felt, address : felt, input: felt) -> (success : felt):
+}(filler : felt, address : felt, input : felt) -> (success : felt):
     alloc_locals
     assert filler = 1
 
@@ -450,11 +449,11 @@ func validate_multisig{
 
     let (num_confirms) = IMultiSig.get_confirmations(contract_address=caller, tx_index=input)
     let (num_owners) = IMultiSig.get_num_owners(contract_address=caller)
-    assert num_confirms = num_owners-1
+    assert num_confirms = num_owners - 1
 
     let (signers_len, signers) = IMultiSig.get_owners(contract_address=caller)
     let (count) = _validate_signer_count(caller, input, 0, signers_len, signers)
-    assert count = signers_len-1
+    assert count = signers_len - 1
 
     payday.emit(address, MULTISIG)
     let (completed) = completions.read(address, MULTISIG)

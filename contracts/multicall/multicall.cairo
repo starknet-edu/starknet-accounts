@@ -98,9 +98,13 @@ end
 @external
 func __execute__{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
-}(nonce : felt, call_array_len : felt, call_array : AccountCallArray*, calldata_len : felt, calldata : felt*) -> (
-    response_len : felt, response : felt*
-):
+}(
+    nonce : felt,
+    call_array_len : felt,
+    call_array : AccountCallArray*,
+    calldata_len : felt,
+    calldata : felt*,
+) -> (response_len : felt, response : felt*):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
 

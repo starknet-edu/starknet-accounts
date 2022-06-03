@@ -117,31 +117,41 @@ end
 # MISSION 2
 #
 @view
-func get_confirmations{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(tx_index : felt) -> (res : felt):
+func get_confirmations{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    tx_index : felt
+) -> (res : felt):
     let (res) = tx_confirms.read(tx_index)
     return (res)
 end
 
 @view
-func get_owner_confirmed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(tx_index : felt, owner : felt) -> (res : felt):
+func get_owner_confirmed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    tx_index : felt, owner : felt
+) -> (res : felt):
     let (res) = has_confirmed.read(tx_index, owner)
     return (res)
 end
 
 @view
-func get_num_owners{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
+func get_num_owners{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    res : felt
+):
     let (res) = num_owners.read()
     return (res)
 end
 
 @view
-func get_test_sig{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (value : TestSignature):
+func get_test_sig{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    value : TestSignature
+):
     let (value) = test_signature.read()
     return (value)
 end
 
 @view
-func get_owners{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (signers_len : felt, signers : felt*):
+func get_owners{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    signers_len : felt, signers : felt*
+):
     alloc_locals
     let (signers_len) = num_owners.read()
 
@@ -209,11 +219,11 @@ func _get_signers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         return ()
     end
 
-    let (owner) = owners.read(signer_idx+1)
+    let (owner) = owners.read(signer_idx + 1)
     assert_not_zero(owner)
     assert signers[signer_idx] = owner
 
-    _get_signers(signer_idx+1, signers_len, signers)
+    _get_signers(signer_idx + 1, signers_len, signers)
     return ()
 end
 
@@ -229,10 +239,12 @@ func submit_tx{
 }(contract_address : felt, function_selector : felt, calldata_len : felt, calldata : felt*):
     alloc_locals
     _require_owner()
-    
+
     let (caller) = get_caller_address()
     let (tx_info) = get_tx_info()
-    IAccount.is_valid_signature(caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
+    IAccount.is_valid_signature(
+        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
+    )
 
     let (tx_index) = curr_tx_index.read()
     transactions.write(tx_index, Transaction(contract_address, function_selector, calldata_len))
@@ -263,10 +275,14 @@ func confirm_tx{
 
     let (caller) = get_caller_address()
     let (tx_info) = get_tx_info()
-    IAccount.is_valid_signature(caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
+    IAccount.is_valid_signature(
+        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
+    )
 
     let (pub_key) = IAccount.get_signer(caller)
-    test_signature.write(TestSignature(tx_info.transaction_hash, pub_key, tx_info.signature[0], tx_info.signature[1]))
+    test_signature.write(
+        TestSignature(tx_info.transaction_hash, pub_key, tx_info.signature[0], tx_info.signature[1])
+    )
 
     let (confirmed) = has_confirmed.read(tx_index, caller)
     assert confirmed = FALSE

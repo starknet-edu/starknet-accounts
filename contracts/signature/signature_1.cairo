@@ -15,7 +15,7 @@ func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     let (hash) = hash2{hash_ptr=pedersen_ptr}(calldata[0], calldata[1])
     let (vec : felt*) = alloc()
     assert [vec] = hash
-    assert [vec+1] = calldata[2]
+    assert [vec + 1] = calldata[2]
 
     let (retdata_len : felt, retdata : felt*) = call_contract(
         contract_address=contract_address, function_selector=selector, calldata_size=2, calldata=vec

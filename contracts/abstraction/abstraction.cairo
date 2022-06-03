@@ -55,7 +55,9 @@ func get_nonce{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 end
 
 @view
-func get_public_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (pub_key : EcPoint):
+func get_public_key{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    pub_key : EcPoint
+):
     let (pub_key) = public_key.read()
     return (pub_key)
 end
@@ -69,7 +71,7 @@ func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> (retdata_len : felt, retdata : felt*):
     let (curr_nonce) = account_nonce.read()
     assert curr_nonce = nonce
-    account_nonce.write(curr_nonce+1)
+    account_nonce.write(curr_nonce + 1)
 
     let (retdata_len : felt, retdata : felt*) = call_contract(
         contract_address=contract_address,
