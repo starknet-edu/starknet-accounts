@@ -67,17 +67,19 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
     CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
     if additional_data:
         CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
-        
-    if os.stat(ACCOUNT_FILE).st_size > 0 and os.getenv('ACCOUNT_CACHE') is None:
-        with open(ACCOUNT_FILE) as json_file:
-            data = json.load(json_file)
-            if CONTRACT_ADDRESS in data:
-                print("\u001b[35mFound local contract: {}\u001b[0m\n".format(data[CONTRACT_ADDRESS]))
-                return int(data[CONTRACT_ADDRESS], 16)
+    if os.getenv('ACCOUNT_CACHE') == "false":
+        print("\u001b[35mDisabled local account cache\u001b[0m\n")
+    else:
+        if os.path.exists(ACCOUNT_FILE) :
+            with open(ACCOUNT_FILE) as json_file:
+                data = json.load(json_file)
+                if CONTRACT_ADDRESS in data:
+                    print("\u001b[35mFound local contract: {}\u001b[0m\n".format(data[CONTRACT_ADDRESS]))
+                    return int(data[CONTRACT_ADDRESS], 16)
 
     client = Client("testnet")
 
-    os.system("starknet-compile --account_contract {}.cairo --output {}_compiled.json --abi {}_abi.json".format(contract_path, contract_path, contract_path))
+    os.system("starknet-compile --account_contract {}.cairo --output {}_compiled.json".format(contract_path, contract_path, contract_path))
 
     compiled = Path("{}_compiled.json".format(contract_path)).read_text()
     deployment_result = await Contract.deploy(
@@ -97,9 +99,12 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
     await client.wait_for_tx(deployment_result.hash)
     res = await client.get_transaction(deployment_result.hash)
 
-    data[CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
-    with open(ACCOUNT_FILE, 'w') as outfile:
-        json.dump(data, outfile, sort_keys=True, indent=4)
-    print("\tSuccess - cached in accounts.json\u001b[0m\n")
+    if os.getenv('ACCOUNT_CACHE') != "false":
+        data[CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
+        with open(ACCOUNT_FILE, 'w') as outfile:
+            json.dump(data, outfile, sort_keys=True, indent=4)
+        print("\tSuccess - cached in accounts.json")
+
+    print("\u001b[0m\n")
 
     return res.transaction.contract_address

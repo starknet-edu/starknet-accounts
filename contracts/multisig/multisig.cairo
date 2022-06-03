@@ -16,11 +16,21 @@ struct Transaction:
     member calldata_len : felt
 end
 
+struct TestSignature:
+    member hash : felt
+    member pub : felt
+    member sig_r : felt
+    member sig_s : felt
+end
+
 ####################
 # INTERFACES
 ####################
 @contract_interface
 namespace IAccount:
+    func get_signer() -> (res : felt):
+    end
+
     func is_valid_signature(hash : felt, signature_len : felt, signature : felt*):
     end
 end
@@ -62,6 +72,10 @@ end
 
 @storage_var
 func transaction_calldata(tx_index : felt, calldata_index : felt) -> (value : felt):
+end
+
+@storage_var
+func test_signature() -> (value : TestSignature):
 end
 
 ####################
@@ -118,6 +132,12 @@ end
 func get_num_owners{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : felt):
     let (res) = num_owners.read()
     return (res)
+end
+
+@view
+func get_test_sig{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (value : TestSignature):
+    let (value) = test_signature.read()
+    return (value)
 end
 
 @view
@@ -244,6 +264,9 @@ func confirm_tx{
     let (caller) = get_caller_address()
     let (tx_info) = get_tx_info()
     IAccount.is_valid_signature(caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature)
+
+    let (pub_key) = IAccount.get_signer(caller)
+    test_signature.write(TestSignature(tx_info.transaction_hash, pub_key, tx_info.signature[0], tx_info.signature[1]))
 
     let (confirmed) = has_confirmed.read(tx_index, caller)
     assert confirmed = FALSE

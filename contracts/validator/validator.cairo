@@ -29,6 +29,16 @@ const MULTISIG = 0x4d554c5449534947
 const ABSTRACTION = 0x4142535452414354494f4e
 
 ####################
+# STRUCTS
+####################
+struct TestSignature:
+    member hash : felt
+    member pub : felt
+    member sig_r : felt
+    member sig_s : felt
+end
+
+####################
 # INTERFACES
 ####################
 @contract_interface
@@ -56,6 +66,9 @@ namespace IMultiSig:
 
     func get_owner_confirmed(tx_index : felt, owner : felt) -> (res : felt):
     end
+
+    func get_test_sig() -> (value : TestSignature):
+    end
 end
 
 @contract_interface
@@ -71,6 +84,10 @@ end
 ####################
 @storage_var
 func completions(address : felt, contract : felt) -> (completed : felt):
+end
+
+@storage_var
+func points(address : felt) -> (total : felt):
 end
 
 @storage_var
@@ -130,6 +147,22 @@ end
 # GETTER FUNCTIONS
 ####################
 @view
+func get_completions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    address : felt, contract : felt
+) -> (completed : felt):
+    let (completed) = completions.read(address, contract)
+    return (completed)
+end
+
+@view
+func get_points{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(address : felt) -> (
+    total : felt
+):
+    let (total) = points.read(address)
+    return (total)
+end
+
+@view
 func get_public{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     pub : felt
 ):
@@ -161,13 +194,6 @@ func get_multicall_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (value)
 end
 
-@view
-func get_completions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt, contract : felt
-) -> (completed : felt):
-    let (completed) = completions.read(address, contract)
-    return (completed)
-end
 
 ####################
 # INTERNAL FUNCTIONS
@@ -182,6 +208,19 @@ func _is_valid_signature{
 
     verify_ecdsa_signature(
         message=hash, public_key=_public_key, signature_r=sig_r, signature_s=sig_s
+    )
+
+    return ()
+end
+
+func _is_valid_signature_full{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
+}(hash : felt, pub : felt, sig_r : felt, sig_s : felt) -> ():
+    let (_public_key) = public.read()
+    assert_not_equal(pub, _public_key)
+
+    verify_ecdsa_signature(
+        message=hash, public_key=pub, signature_r=sig_r, signature_s=sig_s
     )
 
     return ()
@@ -227,8 +266,16 @@ func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     let (rand) = random.read()
     assert input = rand
 
-    completions.write(address, HELLO, 1)
     payday.emit(address, HELLO)
+    let (completed) = completions.read(address, HELLO)
+    let (curr_points) = points.read(address)
+
+    if completed == 0:
+        completions.write(address, HELLO, 1)
+        points.write(address, curr_points + 1)
+        return (TRUE)
+    end
+
     return (TRUE)
 end
 
@@ -260,8 +307,16 @@ func validate_signature_1{
         signature_s=tx_info.signature[1],
     )
 
-    completions.write(address, SIGNATURE_1, 1)
     payday.emit(address, SIGNATURE_1)
+    let (completed) = completions.read(address, SIGNATURE_1)
+    let (curr_points) = points.read(address)
+
+    if completed == 0:
+        completions.write(address, SIGNATURE_1, 1)
+        points.write(address, curr_points + 1)
+        return (TRUE)
+    end
+
     return (TRUE)
 end
 
@@ -296,8 +351,15 @@ func validate_signature_2{
     end
 
     if tx_hash_count == 1:
-        completions.write(address, SIGNATURE_2, 1)
         payday.emit(address, SIGNATURE_2)
+        let (completed) = completions.read(address, SIGNATURE_2)
+        let (curr_points) = points.read(address)
+
+        if completed == 0:
+            completions.write(address, SIGNATURE_2, 1)
+            points.write(address, curr_points + 2)
+            return (TRUE)
+        end
         return (TRUE)
     end
 
@@ -322,8 +384,15 @@ func validate_signature_3{
 
     _is_valid_signature(hash=hash, signature_len=tx_info.signature_len, signature=tx_info.signature)
 
-    completions.write(address, SIGNATURE_3, 1)
     payday.emit(address, SIGNATURE_3)
+    let (completed) = completions.read(address, SIGNATURE_3)
+    let (curr_points) = points.read(address)
+
+    if completed == 0:
+        completions.write(address, SIGNATURE_3, 1)
+        points.write(address, curr_points + 3)
+        return (TRUE)
+    end
     return (TRUE)
 end
 
@@ -353,8 +422,15 @@ func validate_multicall{
     end
 
     if value == 2:
-        completions.write(address, MULTICALL, 1)
         payday.emit(address, MULTICALL)
+        let (completed) = completions.read(address, MULTICALL)
+        let (curr_points) = points.read(address)
+
+        if completed == 0:
+            completions.write(address, MULTICALL, 1)
+            points.write(address, curr_points + 5)
+            return (TRUE)
+        end
         return (TRUE)
     end
 
@@ -367,7 +443,11 @@ func validate_multisig{
 }(filler : felt, address : felt, input: felt) -> (success : felt):
     alloc_locals
     assert filler = 1
+
     let (caller) = get_caller_address()
+    let (test_sig : TestSignature) = IMultiSig.get_test_sig(contract_address=caller)
+    _is_valid_signature_full(test_sig.hash, test_sig.pub, test_sig.sig_r, test_sig.sig_s)
+
     let (num_confirms) = IMultiSig.get_confirmations(contract_address=caller, tx_index=input)
     let (num_owners) = IMultiSig.get_num_owners(contract_address=caller)
     assert num_confirms = num_owners-1
@@ -376,8 +456,15 @@ func validate_multisig{
     let (count) = _validate_signer_count(caller, input, 0, signers_len, signers)
     assert count = signers_len-1
 
-    completions.write(address, MULTISIG, 1)
     payday.emit(address, MULTISIG)
+    let (completed) = completions.read(address, MULTISIG)
+    let (curr_points) = points.read(address)
+
+    if completed == 0:
+        completions.write(address, MULTISIG, 1)
+        points.write(address, curr_points + 10)
+        return (TRUE)
+    end
     return (TRUE)
 end
 
@@ -399,7 +486,14 @@ func validate_abstraction{
     let (pub_key) = IAccountAbstraction.get_public_key(contract_address=caller)
     _is_valid_abstraction(hash, pub_key, sig_r, sig_s)
 
-    completions.write(address, ABSTRACTION, 1)
     payday.emit(address, ABSTRACTION)
+    let (completed) = completions.read(address, ABSTRACTION)
+    let (curr_points) = points.read(address)
+
+    if completed == 0:
+        completions.write(address, ABSTRACTION, 1)
+        points.write(address, curr_points + 20)
+        return (TRUE)
+    end
     return (TRUE)
 end
