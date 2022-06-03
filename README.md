@@ -1,6 +1,7 @@
 <div align="center">
     <img src="./misc/abstract.jpg" style="width: 350px">
     <h1>StarkNet Account Abstraction</h1>
+    <br>
 
 |Exercise|Topic|
 |---|---|
