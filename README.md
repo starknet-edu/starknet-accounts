@@ -39,11 +39,11 @@ export VALIDATOR_ADDRESS=0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389
 export WALLET_ADDRESS=<e.g. ARGENT/BRAVOS wallet address>
 ```
 
-Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
+Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`. 
 
 The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult.
 
-If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389f51abd632de) and what it is checking for.
+If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389f51abd632de) and what it is checking for. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
 
 ***!!!DON'T CHEAT!!!***
 
