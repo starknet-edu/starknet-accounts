@@ -3,7 +3,7 @@
     <h1>StarkNet Account Abstraction</h1>
 </div>
 
-### Exercises
+## Exercises
 
 |Topic|Code|
 |---|---|
@@ -13,7 +13,7 @@
 |multiple signatures|[multisig](contracts/multisig)|
 |account abstraction concepts|[abstraction](contracts/abstraction)|
 
-## Setup
+# Setup
 
 ```bash
 # assumes you're using python3.7
@@ -50,7 +50,7 @@ If you hit a roadblock the first place to look is the deployed [validator contra
 
 ...but if you need help you can reference the [Open Zeppelin](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account) account contracts or `tests/<TOPIC>` branch of this repository.
 
-## Walk Through
+# Walk Through
 
 Accounts on StarkNet are deployed via an [Account Abstraction](https://perama-v.github.io/cairo/account-abstraction) model.
 
@@ -83,7 +83,7 @@ The job of an account contract is to execute arbitrary business logic on behalf 
     calldata : felt*
 ```
 
-### [Signatures](./contracts/signatures)
+## [Signatures](./contracts/signatures)
 
 Unlike Ethereum [EOAs](https://ethereum.org/en/developers/docs/accounts/#externally-owned-accounts-and-key-pairs), StarkNet accounts don't have a hard requirement on being managed by a public/private key pair.
 
@@ -116,7 +116,7 @@ cd contracts/signature
 python3 signature_3.py
 ```
 
-### [MultiCall](./contracts/multicall)
+## [MultiCall](./contracts/multicall)
 
 Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do!
 
@@ -131,7 +131,7 @@ cd contracts/multicall
 python3 multicall.py
 ```
 
-### [MultiSig](./contracts/multisig)
+## [MultiSig](./contracts/multisig)
 
 A `multisig` or multiple signature wallet allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
 
@@ -144,7 +144,7 @@ cd contracts/multisig
 python3 multisig.py
 ```
 
-### [Abstraction](./contracts/abstraction)
+## [Abstraction](./contracts/abstraction)
 
 As StarkNet accounts are simply contracts we can implement any signing mechanism we want. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create `Sign-In` architectures using your StarkNet account. [JWT](https://github.com/BoBowchan/cairo-jsonwebtoken) token schems are being implemented.
 
