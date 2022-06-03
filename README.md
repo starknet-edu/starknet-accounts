@@ -14,6 +14,12 @@
 
 # Setup
 
+This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html) and [starknet.py](https://github.com/software-mansion/starknet.py). Each exercise comes with a python helper script which includes:
+
+- mission objectives
+- contract deployment functions
+- [validator](./contracts/validator) interactions
+
 ```bash
 # assumes you're using python3.7
 python3.7 -m venv ~/cairo_venv
@@ -33,13 +39,7 @@ export VALIDATOR_ADDRESS=0x0088d8d53d6f74d8e4b8e6eaca0e05276d64368bada0dfcdd4389
 export WALLET_ADDRESS=<e.g. ARGENT/BRAVOS wallet address>
 ```
 
-This tutorial uses [starknet.py](https://github.com/software-mansion/starknet.py). Each exercise comes with a python helper script which includes:
-
-- mission objectives
-- contract deployment functions
-- [validator](./contracts/validator) interactions
-
-Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`.
+Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
 
 The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult.
 
@@ -47,7 +47,7 @@ If you hit a roadblock the first place to look is the deployed [validator contra
 
 ***!!!DON'T CHEAT!!!***
 
-...but if you need help you can reference the [Open Zeppelin](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account) account contracts or `tests/<TOPIC>` branch of this repository.
+...but if you need help you can reference the [Open Zeppelin](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account) account contracts or `hints/<TOPIC>` branch of this repository.
 
 # Walk Through
 
