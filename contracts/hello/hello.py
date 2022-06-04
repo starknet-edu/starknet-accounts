@@ -30,8 +30,8 @@ async def main():
     #
     # MISSION 2
     #
-    validator_contract = await Contract.from_address(VALIDATOR_ADDRESS, client)
-    (random, ) = await validator_contract.functions["get_random"].call()
+    validator = await Contract.from_address(VALIDATOR_ADDRESS, client, True)
+    (random, ) = await validator.functions["get_random"].call()
 
     prepared = contract.functions["__execute__"].prepare(
         contract_address=VALIDATOR_ADDRESS,

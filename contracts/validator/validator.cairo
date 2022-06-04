@@ -13,6 +13,9 @@ from starkware.cairo.common.math import assert_not_equal, assert_not_zero
 from starkware.cairo.common.hash import hash2
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.bool import TRUE, FALSE
+
+from starkware.cairo.common.uint256 import Uint256
+from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from cairo_examples.secp.bigint import BigInt3
 from cairo_examples.secp.secp import verify_ecdsa
 from cairo_examples.secp.secp_ec import EcPoint
@@ -27,6 +30,7 @@ const SIGNATURE_3 = 0x5349474e41545552455f33
 const MULTICALL = 0x4d554c544943414c4c
 const MULTISIG = 0x4d554c5449534947
 const ABSTRACTION = 0x4142535452414354494f4e
+const REWARDS_BASE = 0x0de0b6b3a7640000
 
 ####################
 # STRUCTS
@@ -83,11 +87,11 @@ end
 # STORAGE VARIABLES
 ####################
 @storage_var
-func completions(address : felt, contract : felt) -> (completed : felt):
+func rewards_contract() -> (value : felt):
 end
 
 @storage_var
-func points(address : felt) -> (total : felt):
+func completions(address : felt, contract : felt) -> (completed : felt):
 end
 
 @storage_var
@@ -147,19 +151,19 @@ end
 # GETTER FUNCTIONS
 ####################
 @view
+func get_rewards_contract{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    addr : felt
+):
+    let (addr) = rewards_contract.read()
+    return (addr)
+end
+
+@view
 func get_completions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     address : felt, contract : felt
 ) -> (completed : felt):
     let (completed) = completions.read(address, contract)
     return (completed)
-end
-
-@view
-func get_points{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    address : felt
-) -> (total : felt):
-    let (total) = points.read(address)
-    return (total)
 end
 
 @view
@@ -252,6 +256,17 @@ end
 # EXTERNAL FUNCTIONS
 ####################
 @external
+func set_rewards_contract{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    addr : felt
+):
+    let (curr_admin) = rewards_contract.read()
+    assert curr_admin = 0
+
+    rewards_contract.write(addr)
+    return ()
+end
+
+@external
 func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     input : felt, address : felt
 ) -> (success : felt):
@@ -267,11 +282,11 @@ func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 
     payday.emit(address, HELLO)
     let (completed) = completions.read(address, HELLO)
-    let (curr_points) = points.read(address)
 
     if completed == 0:
+        let (rewards) = rewards_contract.read()
+        IERC20.transfer(rewards, address, Uint256(100 * REWARDS_BASE, 0))
         completions.write(address, HELLO, 1)
-        points.write(address, curr_points + 1)
         return (TRUE)
     end
 
@@ -308,11 +323,11 @@ func validate_signature_1{
 
     payday.emit(address, SIGNATURE_1)
     let (completed) = completions.read(address, SIGNATURE_1)
-    let (curr_points) = points.read(address)
 
     if completed == 0:
+        let (rewards) = rewards_contract.read()
+        IERC20.transfer(rewards, address, Uint256(100 * REWARDS_BASE, 0))
         completions.write(address, SIGNATURE_1, 1)
-        points.write(address, curr_points + 1)
         return (TRUE)
     end
 
@@ -352,11 +367,11 @@ func validate_signature_2{
     if tx_hash_count == 1:
         payday.emit(address, SIGNATURE_2)
         let (completed) = completions.read(address, SIGNATURE_2)
-        let (curr_points) = points.read(address)
 
         if completed == 0:
+            let (rewards) = rewards_contract.read()
+            IERC20.transfer(rewards, address, Uint256(200 * REWARDS_BASE, 0))
             completions.write(address, SIGNATURE_2, 1)
-            points.write(address, curr_points + 2)
             return (TRUE)
         end
         return (TRUE)
@@ -385,11 +400,11 @@ func validate_signature_3{
 
     payday.emit(address, SIGNATURE_3)
     let (completed) = completions.read(address, SIGNATURE_3)
-    let (curr_points) = points.read(address)
 
     if completed == 0:
+        let (rewards) = rewards_contract.read()
+        IERC20.transfer(rewards, address, Uint256(300 * REWARDS_BASE, 0))
         completions.write(address, SIGNATURE_3, 1)
-        points.write(address, curr_points + 3)
         return (TRUE)
     end
     return (TRUE)
@@ -423,11 +438,11 @@ func validate_multicall{
     if value == 2:
         payday.emit(address, MULTICALL)
         let (completed) = completions.read(address, MULTICALL)
-        let (curr_points) = points.read(address)
 
         if completed == 0:
+            let (rewards) = rewards_contract.read()
+            IERC20.transfer(rewards, address, Uint256(500 * REWARDS_BASE, 0))
             completions.write(address, MULTICALL, 1)
-            points.write(address, curr_points + 5)
             return (TRUE)
         end
         return (TRUE)
@@ -457,11 +472,11 @@ func validate_multisig{
 
     payday.emit(address, MULTISIG)
     let (completed) = completions.read(address, MULTISIG)
-    let (curr_points) = points.read(address)
 
     if completed == 0:
+        let (rewards) = rewards_contract.read()
+        IERC20.transfer(rewards, address, Uint256(1000 * REWARDS_BASE, 0))
         completions.write(address, MULTISIG, 1)
-        points.write(address, curr_points + 10)
         return (TRUE)
     end
     return (TRUE)
@@ -487,11 +502,11 @@ func validate_abstraction{
 
     payday.emit(address, ABSTRACTION)
     let (completed) = completions.read(address, ABSTRACTION)
-    let (curr_points) = points.read(address)
 
     if completed == 0:
+        let (rewards) = rewards_contract.read()
+        IERC20.transfer(rewards, address, Uint256(2000 * REWARDS_BASE, 0))
         completions.write(address, ABSTRACTION, 1)
-        points.write(address, curr_points + 20)
         return (TRUE)
     end
     return (TRUE)

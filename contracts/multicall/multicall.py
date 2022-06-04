@@ -55,10 +55,16 @@ async def main():
             "data_len": 1
         },
     ]
-    inner_calldata = [WALLET_ADDRESS, WALLET_ADDRESS, WALLET_ADDRESS]
     
     (nonce, ) = await contract.functions["get_nonce"].call()
-    calldata = [nonce, len(call_array), *call_array[0], *call_array[1], *call_array[2], len(inner_calldata), *inner_calldata]
+    inner_calldata = [WALLET_ADDRESS, WALLET_ADDRESS, WALLET_ADDRESS]
+    calldata = [
+        nonce, len(call_array),
+        VALIDATOR_ADDRESS, selector, 0, 1,
+        VALIDATOR_ADDRESS, selector, 1, 1,
+        VALIDATOR_ADDRESS, selector, 2, 1,
+        len(inner_calldata), *inner_calldata
+    ]
 
     hash = invoke_tx_hash(account_address, calldata)
     signature = sign(hash, private_key)

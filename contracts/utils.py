@@ -70,7 +70,7 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
     if os.getenv('ACCOUNT_CACHE') == "false":
         print("\u001b[35mDisabled local account cache\u001b[0m\n")
     else:
-        if os.path.exists(ACCOUNT_FILE) :
+        if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
             with open(ACCOUNT_FILE) as json_file:
                 data = json.load(json_file)
                 if CONTRACT_ADDRESS in data:

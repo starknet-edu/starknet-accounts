@@ -14,6 +14,7 @@ MASK = BASE - 1
 # The path to the contract source code.
 ABSTRACTION_FILE = os.path.join("../contracts/abstraction", "abstraction.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
+ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
 
 DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
@@ -28,46 +29,43 @@ async def starknet() -> Starknet:
     return await Starknet.empty()
 
 @pytest.fixture
-async def validator_contract(starknet: Starknet) -> StarknetContract:
+async def validator(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=VALIDATOR_FILE,
         constructor_calldata=[PRIVATE_KEY, PUBLIC_KEY, INPUT_1, INPUT_2],
     )
 
 @pytest.fixture
-async def abstraction_contract(starknet: Starknet) -> StarknetContract:
+async def abstraction(starknet: Starknet) -> StarknetContract:
     PUB_X=0x95cd669eb2bd5ede97706551fbe2bc210940ec7797da33dee43814e292f93837
     PUB_Y=0x339d4e13c088c0a26c176b3d0505177a70f50345c874a4d4cca1c8b1f05b72bd
 
-    calldata = []
-    calldata.append(PUB_X & MASK)
-    PUB_X >>= SHIFT
-    
-    calldata.append(PUB_X & MASK)
-    PUB_X >>= SHIFT
-
-    calldata.append(PUB_X & MASK)
-    PUB_X >>= SHIFT
-
-    calldata.append(PUB_Y & MASK)
-    PUB_Y >>= SHIFT
-    
-    calldata.append(PUB_Y & MASK)
-    PUB_Y >>= SHIFT
-
-    calldata.append(PUB_Y & MASK)
-    PUB_Y >>= SHIFT
+    calldata_x = []
+    calldata_y = []
+    for i in range(3):
+        calldata_x.append(PUB_X & MASK)
+        PUB_X >>= SHIFT
+        
+        calldata_y.append(PUB_Y & MASK)
+        PUB_Y >>= SHIFT
 
     return await starknet.deploy(
         source=ABSTRACTION_FILE,
-        constructor_calldata=calldata,
+        constructor_calldata=[*calldata_x, *calldata_y],
     )
 
 @pytest.mark.asyncio
 async def test_abstraction(
-    validator_contract: StarknetContract,
-    abstraction_contract: StarknetContract,
+    starknet: Starknet,
+    validator: StarknetContract,
+    abstraction: StarknetContract,
 ):
+    ACT = await starknet.deploy(
+        source=ACT_FILE,
+        constructor_calldata=[validator.contract_address],
+    )
+    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
+
     sk = SigningKey.from_string(ABSTRACT_PRIV.to_bytes(32, 'big'), curve=SECP256k1, hashfunc=sha256)
 
     signature = sk.sign(b"message")
@@ -78,44 +76,29 @@ async def test_abstraction(
     sig_r = int.from_bytes(signature[:32], "big")
     sig_s = int.from_bytes(signature[32:], "big")
 
-    selector = get_selector_from_name("validate_abstraction")
-    calldata=[]
-    calldata.append(hash & MASK)
-    hash >>= SHIFT
-    
-    calldata.append(hash & MASK)
-    hash >>= SHIFT
+    calldata_h=[]
+    calldata_r=[]
+    calldata_s=[]
+    for i in range(3):
+        calldata_h.append(hash & MASK)
+        hash >>= SHIFT
 
-    calldata.append(hash & MASK)
-    hash >>= SHIFT
+        calldata_r.append(sig_r & MASK)
+        sig_r >>= SHIFT
 
-    calldata.append(sig_r & MASK)
-    sig_r >>= SHIFT
-    
-    calldata.append(sig_r & MASK)
-    sig_r >>= SHIFT
+        calldata_s.append(sig_s & MASK)
+        sig_s >>= SHIFT
 
-    calldata.append(sig_r & MASK)
-    sig_r >>= SHIFT
-
-    calldata.append(sig_s & MASK)
-    sig_s >>= SHIFT
-    
-    calldata.append(sig_s & MASK)
-    sig_s >>= SHIFT
-
-    calldata.append(sig_s & MASK)
-    sig_s >>= SHIFT
-
-    calldata.append(DUMMY_ACCOUNT)
-
-    nonce_info = await abstraction_contract.get_nonce().call()
+    nonce_info = await abstraction.get_nonce().call()
     nonce = nonce_info.result.res
 
-    exec_info = await abstraction_contract.__execute__(
-        contract_address=validator_contract.contract_address,
-        selector=selector,
+    exec_info = await abstraction.__execute__(
+        contract_address=validator.contract_address,
+        selector=get_selector_from_name("validate_abstraction"),
         nonce=nonce,
-        calldata=calldata,
+        calldata=[*calldata_h, *calldata_r, *calldata_s, DUMMY_ACCOUNT],
     ).invoke()
     assert exec_info.result.retdata[0] == 1
+
+    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
+    assert balance.result.balance.low == 2000000000000000000000

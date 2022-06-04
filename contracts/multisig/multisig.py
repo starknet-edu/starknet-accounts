@@ -45,19 +45,18 @@ async def main():
 
     client = Client("testnet")
     signer_1_address = await deploy_testnet("signature_basic", [stark_key], 1)
-    signer_1_contract = await Contract.from_address(signer_1_address, client)
+    signer_1 = await Contract.from_address(signer_1_address, client)
 
     signer_2_address = await deploy_testnet("signature_basic", [stark_key_2], 2)
-    signer_2_contract = await Contract.from_address(signer_2_address, client)
+    signer_2 = await Contract.from_address(signer_2_address, client)
 
     signer_3_address = await deploy_testnet("signature_basic", [stark_key_3], 3)
-    signer_3_contract = await Contract.from_address(signer_3_address, client)
+    signer_3 = await Contract.from_address(signer_3_address, client)
 
     #
     # MISSION 7
     #
-    multi = await deploy_testnet("multisig", [[signer_1_address, signer_2_address, signer_3_address]])
-    multi_contract = await Contract.from_address(multi, client)
+    multi_address = await deploy_testnet("multisig", [[signer_1_address, signer_2_address, signer_3_address]])
     
     #
     # MISSION 8
@@ -66,15 +65,15 @@ async def main():
     submit_selector = get_selector_from_name("submit_tx")
     submit_event_selector = get_selector_from_name("submit")
 
-    (nonce_1, ) = await signer_1_contract.functions["get_nonce"].call()
+    (nonce_1, ) = await signer_1.functions["get_nonce"].call()
     inner_calldata=[VALIDATOR_ADDRESS, validator_selector, 2, 1, WALLET_ADDRESS]
-    outer_calldata=[multi, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
+    outer_calldata=[multi_address, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
 
     hash = invoke_tx_hash(signer_1_address, outer_calldata)
     sub_signature = sign(hash, private_key)
 
-    sub_prepared = signer_1_contract.functions["__execute__"].prepare(
-        contract_address=multi,
+    sub_prepared = signer_1.functions["__execute__"].prepare(
+        contract_address=multi_address,
         selector=submit_selector,
         nonce=nonce_1,
         calldata_len=len(inner_calldata),
@@ -89,14 +88,14 @@ async def main():
     confirm_selector = get_selector_from_name("confirm_tx")
     confirm_event_selector = get_selector_from_name("confirm")
 
-    (nonce_2, ) = await signer_2_contract.functions["get_nonce"].call()
-    conf_calldata=[multi, confirm_selector, nonce_2, 1, data[1]]
+    (nonce_2, ) = await signer_2.functions["get_nonce"].call()
+    conf_calldata=[multi_address, confirm_selector, nonce_2, 1, data[1]]
     conf_hash = invoke_tx_hash(signer_2_address, conf_calldata)
 
     conf_signature = sign(conf_hash, private_key_2)
 
-    conf_prepared = signer_2_contract.functions["__execute__"].prepare(
-        contract_address=multi,
+    conf_prepared = signer_2.functions["__execute__"].prepare(
+        contract_address=multi_address,
         selector=confirm_selector,
         nonce=nonce_2,
         calldata_len=2,
@@ -105,15 +104,15 @@ async def main():
 
     await print_n_wait(client, conf_invocation)
 
-    (nonce_3, ) = await signer_3_contract.functions["get_nonce"].call()
-    conf_2_calldata=[multi, confirm_selector, nonce_3, 1, data[1]]
+    (nonce_3, ) = await signer_3.functions["get_nonce"].call()
+    conf_2_calldata=[multi_address, confirm_selector, nonce_3, 1, data[1]]
 
     conf_2_hash = invoke_tx_hash(signer_3_address, conf_2_calldata)
 
     conf_2_signature = sign(conf_2_hash, private_key_3)
 
-    conf_2_prepared = signer_3_contract.functions["__execute__"].prepare(
-        contract_address=multi,
+    conf_2_prepared = signer_3.functions["__execute__"].prepare(
+        contract_address=multi_address,
         selector=confirm_selector,
         nonce=nonce_3,
         calldata_len=1,
@@ -127,13 +126,13 @@ async def main():
     #
     execute_selector = get_selector_from_name("__execute__")
     execute_event_selector = get_selector_from_name("execute")
-    exec_calldata=[multi, execute_selector, nonce_1+1, 1, data[1]]
+    exec_calldata=[multi_address, execute_selector, nonce_1+1, 1, data[1]]
 
     exec_hash = invoke_tx_hash(signer_1_address, exec_calldata)
     exec_signature = sign(exec_hash, private_key)
     
-    exec_prepared = signer_1_contract.functions["__execute__"].prepare(
-        contract_address=multi,
+    exec_prepared = signer_1.functions["__execute__"].prepare(
+        contract_address=multi_address,
         selector=execute_selector,
         nonce=nonce_1+1,
         calldata_len=1,

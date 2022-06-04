@@ -35,15 +35,15 @@ find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec 
 
 # set environment variables
 export STARKNET_NETWORK=alpha-goerli
-export VALIDATOR_ADDRESS=0x05ae563229eab40fae070f122f93af25d09501c6256ae1a0da6cf941facdcfd5
+export VALIDATOR_ADDRESS=0x197c942a62c77d18249adef3c6a8fd89b8725330b43640a5f05850a871fb401
 export WALLET_ADDRESS=<e.g. ARGENT/BRAVOS wallet address>
 ```
 
 Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`.
 
-The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult(and worth more points!).
+The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult(and worth more [points](https://goerli.voyager.online/contract/0x6f9a9435928b768b671c036e72c07d50b1af4d68c4cbfd60ed4c970bf41c77)(the points are not real and can't be transferred)).
 
-If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x05ae563229eab40fae070f122f93af25d09501c6256ae1a0da6cf941facdcfd5) and what it is checking for. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
+If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x197c942a62c77d18249adef3c6a8fd89b8725330b43640a5f05850a871fb401) and what it is checking for. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
 
 ```bash
 cd tests

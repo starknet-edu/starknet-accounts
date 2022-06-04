@@ -18,6 +18,7 @@ SIGNATURE_1_FILE = os.path.join("../contracts/signature", "signature_1.cairo")
 SIGNATURE_2_FILE = os.path.join("../contracts/signature", "signature_2.cairo")
 SIGNATURE_3_FILE = os.path.join("../contracts/signature", "signature_3.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
+ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
 
 DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
@@ -30,28 +31,28 @@ async def starknet() -> Starknet:
     return await Starknet.empty()
 
 @pytest.fixture
-async def validator_contract(starknet: Starknet) -> StarknetContract:
+async def validator(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=VALIDATOR_FILE,
         constructor_calldata=[],
     )
 
 @pytest.fixture
-async def signature_1_contract(starknet: Starknet) -> StarknetContract:
+async def signature_1(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_1_FILE,
         constructor_calldata=[],
     )
 
 @pytest.fixture
-async def signature_2_contract(starknet: Starknet) -> StarknetContract:
+async def signature_2(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_2_FILE,
         constructor_calldata=[],
     )
 
 @pytest.fixture
-async def signature_3_contract(starknet: Starknet) -> StarknetContract:
+async def signature_3(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_3_FILE,
         constructor_calldata=[],
@@ -59,21 +60,21 @@ async def signature_3_contract(starknet: Starknet) -> StarknetContract:
 
 @pytest.mark.asyncio
 async def test_signature_1(
-    validator_contract: StarknetContract,
-    signature_1_contract: StarknetContract,
+    validator: StarknetContract,
+    signature_1: StarknetContract,
 ):
 
 
 @pytest.mark.asyncio
 async def test_signature_2(
-    validator_contract: StarknetContract,
-    signature_2_contract: StarknetContract,
+    validator: StarknetContract,
+    signature_2: StarknetContract,
 ):
 
 
 @pytest.mark.asyncio
 async def test_signature_3(
-    validator_contract: StarknetContract,
-    signature_3_contract: StarknetContract,
+    validator: StarknetContract,
+    signature_3: StarknetContract,
 ):
 

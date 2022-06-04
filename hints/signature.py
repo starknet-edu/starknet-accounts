@@ -18,6 +18,7 @@ SIGNATURE_1_FILE = os.path.join("../contracts/signature", "signature_1.cairo")
 SIGNATURE_2_FILE = os.path.join("../contracts/signature", "signature_2.cairo")
 SIGNATURE_3_FILE = os.path.join("../contracts/signature", "signature_3.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
+ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
 
 DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
@@ -30,28 +31,28 @@ async def starknet() -> Starknet:
     return await Starknet.empty()
 
 @pytest.fixture
-async def validator_contract(starknet: Starknet) -> StarknetContract:
+async def validator(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=VALIDATOR_FILE,
         constructor_calldata=[PRIVATE_KEY, PUBLIC_KEY, INPUT_1, INPUT_2],
     )
 
 @pytest.fixture
-async def signature_1_contract(starknet: Starknet) -> StarknetContract:
+async def signature_1(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_1_FILE,
         constructor_calldata=[],
     )
 
 @pytest.fixture
-async def signature_2_contract(starknet: Starknet) -> StarknetContract:
+async def signature_2(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_2_FILE,
         constructor_calldata=[PUBLIC_KEY],
     )
 
 @pytest.fixture
-async def signature_3_contract(starknet: Starknet) -> StarknetContract:
+async def signature_3(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=SIGNATURE_3_FILE,
         constructor_calldata=[PUBLIC_KEY],
@@ -59,66 +60,97 @@ async def signature_3_contract(starknet: Starknet) -> StarknetContract:
 
 @pytest.mark.asyncio
 async def test_signature_1(
-    validator_contract: StarknetContract,
-    signature_1_contract: StarknetContract,
+    starknet: Starknet,
+    validator: StarknetContract,
+    signature_1: StarknetContract,
 ):
+    ACT = await starknet.deploy(
+        source=ACT_FILE,
+        constructor_calldata=[validator.contract_address],
+    )
+    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
+
     hash = pedersen_hash(INPUT_1, INPUT_2)
-    hash_final = pedersen_hash(hash, signature_1_contract.contract_address)
+    hash_final = pedersen_hash(hash, signature_1.contract_address)
     signature = sign(hash_final, PRIVATE_KEY)
 
     selector = get_selector_from_name("validate_signature_1")
-    exec_info = await signature_1_contract.__execute__(
-        contract_address=validator_contract.contract_address,
+    exec_info = await signature_1.__execute__(
+        contract_address=validator.contract_address,
         selector=selector,
         calldata=[INPUT_1, INPUT_2, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info.result.retdata[0] == 1
 
+    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
+    assert balance.result.balance.low == 100000000000000000000
+
 @pytest.mark.asyncio
 async def test_signature_2(
-    validator_contract: StarknetContract,
-    signature_2_contract: StarknetContract,
+    starknet: Starknet,
+    validator: StarknetContract,
+    signature_2: StarknetContract,
 ):
-    selector = get_selector_from_name("validate_signature_2")
-    calldata=[validator_contract.contract_address, selector, 2, 1, DUMMY_ACCOUNT]
+    ACT = await starknet.deploy(
+        source=ACT_FILE,
+        constructor_calldata=[validator.contract_address],
+    )
+    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
 
-    hash = invoke_tx_hash(signature_2_contract.contract_address, calldata)
+    selector = get_selector_from_name("validate_signature_2")
+    calldata=[validator.contract_address, selector, 2, 1, DUMMY_ACCOUNT]
+
+    hash = invoke_tx_hash(signature_2.contract_address, calldata)
     signature = sign(hash, PRIVATE_KEY)
 
-    exec_info_1 = await signature_2_contract.__execute__(
-        contract_address=validator_contract.contract_address,
+    exec_info_1 = await signature_2.__execute__(
+        contract_address=validator.contract_address,
         selector=selector,
         calldata=[hash, 1, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
+
     assert exec_info_1.result.retdata[0] == 0
 
-    exec_info_2 = await signature_2_contract.__execute__(
-        contract_address=validator_contract.contract_address,
+    exec_info_2 = await signature_2.__execute__(
+        contract_address=validator.contract_address,
         selector=selector,
         calldata=[hash, 2, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info_2.result.retdata[0] == 1
+    
+    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
+    assert balance.result.balance.low == 200000000000000000000
 
 @pytest.mark.asyncio
 async def test_signature_3(
-    validator_contract: StarknetContract,
-    signature_3_contract: StarknetContract,
+    starknet: Starknet,
+    validator: StarknetContract,
+    signature_3: StarknetContract,
 ):
-    nonce_info = await signature_3_contract.get_nonce().call()
+    ACT = await starknet.deploy(
+        source=ACT_FILE,
+        constructor_calldata=[validator.contract_address],
+    )
+    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
+
+    nonce_info = await signature_3.get_nonce().call()
     assert nonce_info.result.res == 0
     nonce = nonce_info.result.res
 
     selector = get_selector_from_name("validate_signature_3")
-    calldata=[validator_contract.contract_address, selector, 2, nonce, DUMMY_ACCOUNT]
+    calldata=[validator.contract_address, selector, 2, nonce, DUMMY_ACCOUNT]
 
-    hash = invoke_tx_hash(signature_3_contract.contract_address, calldata)
+    hash = invoke_tx_hash(signature_3.contract_address, calldata)
     hash_final = pedersen_hash(hash, nonce)
 
     signature = sign(hash_final, PRIVATE_KEY)
 
-    exec_info = await signature_3_contract.__execute__(
-        contract_address=validator_contract.contract_address,
+    exec_info = await signature_3.__execute__(
+        contract_address=validator.contract_address,
         selector=selector,
         calldata=[nonce, DUMMY_ACCOUNT],
     ).invoke(signature=signature)
     assert exec_info.result.retdata[0] == 1
+
+    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
+    assert balance.result.balance.low == 300000000000000000000

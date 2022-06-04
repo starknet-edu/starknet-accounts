@@ -81,7 +81,7 @@ async def main():
         bigS.append(sig_s & MASK)
         sig_s >>= SHIFT
 
-    calldata = [*bigHash, *bigR, *bigS]
+    calldata = [*bigHash, *bigR, *bigS, WALLET_ADDRESS]
 
     #
     # MISSION 5

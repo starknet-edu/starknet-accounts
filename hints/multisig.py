@@ -18,6 +18,7 @@ from starkware.starknet.core.os.transaction_hash.transaction_hash import Transac
 MULTISIG_FILE = os.path.join("../contracts/multisig", "multisig.cairo")
 SIGNATURE_BASIC_FILE = os.path.join("../contracts/multisig", "signature_basic.cairo")
 VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
+ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
 
 DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
 PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
@@ -36,7 +37,7 @@ async def starknet() -> Starknet:
     return await Starknet.empty()
 
 @pytest.fixture
-async def validator_contract(starknet: Starknet) -> StarknetContract:
+async def validator(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
         source=VALIDATOR_FILE,
         constructor_calldata=[PRIVATE_KEY, PUBLIC_KEY, INPUT_1, INPUT_2],
@@ -67,11 +68,17 @@ async def signer_3(starknet: Starknet) -> StarknetContract:
 @pytest.mark.asyncio
 async def test_multicall(
     starknet: Starknet,
-    validator_contract: StarknetContract,
+    validator: StarknetContract,
     signer_1: StarknetContract,
     signer_2: StarknetContract,
     signer_3: StarknetContract,
 ):
+    ACT = await starknet.deploy(
+        source=ACT_FILE,
+        constructor_calldata=[validator.contract_address],
+    )
+    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
+
     multisig_contract = await starknet.deploy(
         source=MULTISIG_FILE,
         constructor_calldata=[
@@ -92,7 +99,7 @@ async def test_multicall(
     nonce_info = await signer_1.get_nonce().call()
     nonce = nonce_info.result.res
 
-    inner_calldata=[validator_contract.contract_address, validator_selector, 2, 1, DUMMY_ACCOUNT]
+    inner_calldata=[validator.contract_address, validator_selector, 2, 1, DUMMY_ACCOUNT]
     outer_calldata=[multisig_contract.contract_address, submit_selector, nonce, len(inner_calldata), *inner_calldata]
 
     hash = invoke_tx_hash(signer_1.contract_address, outer_calldata)
@@ -171,3 +178,6 @@ async def test_multicall(
 
     exec_event = exec_info.raw_events[0]
     assert exec_event.keys[0] == execute_event_selector
+
+    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
+    assert balance.result.balance.low == 1000000000000000000000
