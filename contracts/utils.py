@@ -66,7 +66,7 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
     data = dict()
     CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
     if additional_data:
-        CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
+        CONTRACT_ADDRESS="{}_{}".CONTRACT_ADDRESS, additional_data)
     if os.getenv('ACCOUNT_CACHE') == "false":
         print("\u001b[35mDisabled local account cache\u001b[0m\n")
     else:
