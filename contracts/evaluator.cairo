@@ -258,8 +258,8 @@ func validate_hello{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     assert input = rand
 
     payday.emit(address, HELLO)
-    assign_rank_to_player(caller)
-    validate_and_reward(caller, HELLO, 100)
+    assign_rank_to_player(address)
+    validate_and_reward(address, HELLO, 100)
 
     return (TRUE)
 end
@@ -294,7 +294,7 @@ func validate_signature_1{
     )
 
     payday.emit(address, SIGNATURE_1)
-    validate_and_reward(caller, SIGNATURE_1, 100)
+    validate_and_reward(address, SIGNATURE_1, 100)
 
     return (TRUE)
 end
@@ -331,7 +331,7 @@ func validate_signature_2{
 
     if tx_hash_count == 1:
         payday.emit(address, SIGNATURE_2)
-        validate_and_reward(caller, SIGNATURE_2, 200)
+        validate_and_reward(address, SIGNATURE_2, 200)
 
         return (TRUE)
     end
@@ -358,7 +358,7 @@ func validate_signature_3{
     _is_valid_signature(hash=hash, signature_len=tx_info.signature_len, signature=tx_info.signature)
 
     payday.emit(address, SIGNATURE_3)
-    validate_and_reward(caller, SIGNATURE_3, 300)
+    validate_and_reward(address, SIGNATURE_3, 300)
 
     return (TRUE)
 end
@@ -390,7 +390,7 @@ func validate_multicall{
 
     if value == 2:
         payday.emit(address, MULTICALL)
-        validate_and_reward(caller, MULTICALL, 500)
+        validate_and_reward(address, MULTICALL, 500)
 
         return (TRUE)
     end
@@ -418,7 +418,7 @@ func validate_multisig{
     assert count = signers_len - 1
 
     payday.emit(address, MULTISIG)
-    validate_and_reward(caller, MULTISIG, 1000)
+    validate_and_reward(address, MULTISIG, 1000)
 
     return (TRUE)
 end
@@ -442,7 +442,7 @@ func validate_abstraction{
     _is_valid_abstraction(hash, pub_key, sig_r, sig_s)
 
     payday.emit(address, ABSTRACTION)
-    validate_and_reward(caller, ABSTRACTION, 2000)
+    validate_and_reward(address, ABSTRACTION, 2000)
 
     return (TRUE)
 end

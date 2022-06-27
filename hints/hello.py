@@ -1,57 +1,38 @@
-import os
+import json
 import pytest
 
-from starkware.starknet.testing.starknet import Starknet
+from evaluator import evaluator_setup, starknet
 from starkware.starknet.testing.contract import StarknetContract
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.starkware_utils.error_handling import StarkException
 
-# The path to the contract source code.
-CONTRACT_FILE = os.path.join("../contracts/hello", "hello.cairo")
-VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
-ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
+with open("hints.json", "r") as f:
+  data = json.load(f)
 
-DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
+@pytest.mark.asyncio
+async def test_hello(evaluator_setup: StarknetContract):
+    (evaluator, registry, erc20) = evaluator_setup
 
-@pytest.fixture
-async def starknet() -> Starknet:
-    return await Starknet.empty()
-
-@pytest.fixture
-async def validator(starknet: Starknet) -> StarknetContract:
-    return await starknet.deploy(
-        source=VALIDATOR_FILE,
-        constructor_calldata=[1, 1, 1, 1],
-    )
-
-@pytest.fixture
-async def hello(starknet: Starknet) -> StarknetContract:
-    return await starknet.deploy(
-        source=CONTRACT_FILE,
+    hello = await starknet.deploy(
+        source=data['HELLO_FILE'],
         constructor_calldata=[],
     )
 
-@pytest.mark.asyncio
-async def test_hello(
-    starknet: Starknet,
-    validator: StarknetContract,
-    hello: StarknetContract
-):
-    ACT = await starknet.deploy(
-        source=ACT_FILE,
-        constructor_calldata=[validator.contract_address],
+    proxy = await starknet.deploy(
+        source=data['PROXY_FILE'],
+        constructor_calldata=[hello.contract_address],
     )
-    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
+    print("GOT HERE", proxy.contract_address)
 
-    rand_info = await validator.get_random().call()
-    selector = get_selector_from_name("validate_hello")
+    # rand_info = await evaluator.get_random().call()
+    # print("RAND_INFO: ", eval.contract_address, registry.contract_address, hello.contract_address)
+    # selector = get_selector_from_name("validate_hello")
 
-    exec_info = await hello.__execute__(
-        contract_address=validator.contract_address,
-        selector=selector,
-        calldata=[rand_info.result.rand, DUMMY_ACCOUNT],
-    ).invoke()
-    assert exec_info.result.retdata[0] == 1
+    # exec_info = await hello.__execute__(
+    #     contract_address=validator.contract_address,
+    #     selector=selector,
+    #     calldata=[rand_info.result.rand, data['DUMMY_ACCOUNT']],
+    # ).invoke()
+    # assert exec_info.result.retdata[0] == 1
 
-    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
-    assert balance.result.balance.low == 100000000000000000000
+    # balance = await ACT.balanceOf(account=data['DUMMY_ACCOUNT']).call()
+    # assert balance.result.balance.low == 100000000000000000000

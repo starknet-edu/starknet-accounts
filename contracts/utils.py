@@ -6,6 +6,7 @@ from starknet_py.contract import Contract
 from starknet_py.net.client import Client, InvokeFunction
 from starkware.python.utils import from_bytes
 from starkware.starknet.public.abi import get_selector_from_name
+from starkware.cairo.common.hash_state import compute_hash_on_elements
 from starkware.starknet.core.os.transaction_hash.transaction_hash import TransactionHashPrefix, calculate_transaction_hash_common
 
 VERSION = 0
@@ -62,11 +63,11 @@ async def print_n_wait(client: Client, invocation: InvokeFunction):
 
     return
 
-async def deploy_testnet(contract_path="", constructor_args=[], additional_data=None):
+async def deploy_testnet(client, contract_path="", constructor_args=[], additional_data=None):
     data = dict()
     CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
     if additional_data:
-        CONTRACT_ADDRESS="{}_{}".CONTRACT_ADDRESS, additional_data)
+        CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
     if os.getenv('ACCOUNT_CACHE') == "false":
         print("\u001b[35mDisabled local account cache\u001b[0m\n")
     else:
@@ -76,8 +77,6 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
                 if CONTRACT_ADDRESS in data:
                     print("\u001b[35mFound local contract: {}\u001b[0m\n".format(data[CONTRACT_ADDRESS]))
                     return int(data[CONTRACT_ADDRESS], 16)
-
-    client = Client("testnet")
 
     os.system("starknet-compile --account_contract {}.cairo --output {}_compiled.json".format(contract_path, contract_path, contract_path))
 
@@ -108,3 +107,27 @@ async def deploy_testnet(contract_path="", constructor_args=[], additional_data=
     print("\u001b[0m\n")
 
     return res.transaction.contract_address
+
+async def compile_deploy(client, contract="", args=[], salt=0):
+    compiled = "{}_compiled.json".format(contract)
+    os.system("starknet-compile {}.cairo --output {}".format(contract, compiled))
+    deployment_result = await Contract.deploy(client=client, compiled_contract=Path(compiled).read_text(), constructor_args=args, salt=salt)
+    os.system("rm {}".format(compiled))
+
+    await client.wait_for_tx(deployment_result.hash)
+    res = await client.get_transaction(deployment_result.hash)
+
+    return res.transaction
+
+async def transfer_gas(client, fromAddr, toAddr):
+    fromContract = await Contract.from_address(fromAddr, client, True)
+    prepped = fromContract.functions["__execute__"].prepare(
+        contract_address=3010087218464233437042494926438213308193618470717965319183989869245145381251,
+        selector=get_selector_from_name("transfer"),
+        calldata_len=3,
+        calldata=[toAddr, 100000000000000000000, 0])
+    invocation = await prepped.invoke(max_fee=2500000000000000)
+
+    await client.wait_for_tx(invocation.hash)
+
+    return 

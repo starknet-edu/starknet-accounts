@@ -3,16 +3,9 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.uint256 import (
-    Uint256,
-    uint256_add,
-    uint256_sub,
-    uint256_le,
-    uint256_lt,
-    uint256_check,
-)
+from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_not_zero
-from starkware.starknet.common.syscalls import get_contract_address, get_caller_address
+from starkware.starknet.common.syscalls import get_caller_address
 
 from utils.ITutorial import ITutorial
 from utils.IPlayerRegistry import IPlayerRegistry
@@ -81,13 +74,13 @@ func has_validated_exercise{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ra
 ) -> (has_validated_exercise : felt):
     let (_players_registry) = players_registry.read()
     let (_workshop_id) = workshop_id.read()
-    let (has_current_user_validated_exercise) = IPlayerRegistry.has_validated_exercise(
+    let (has_validated) = IPlayerRegistry.check_validated_exercise(
         contract_address=_players_registry,
         account=account,
         workshop=_workshop_id,
         exercise=exercise_id,
     )
-    return (has_current_user_validated_exercise)
+    return (has_validated)
 end
 
 @view
@@ -140,13 +133,13 @@ func validate_exercise{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
 ):
     let (_players_registry) = players_registry.read()
     let (_workshop_id) = workshop_id.read()
-    let (has_current_user_validated_exercise) = IPlayerRegistry.has_validated_exercise(
+    let (has_validated) = IPlayerRegistry.check_validated_exercise(
         contract_address=_players_registry,
         account=account,
         workshop=_workshop_id,
         exercise=exercise_id,
     )
-    assert (has_current_user_validated_exercise) = 0
+    assert (has_validated) = 0
 
     IPlayerRegistry.validate_exercise(
         contract_address=_players_registry,
@@ -158,12 +151,12 @@ func validate_exercise{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return ()
 end
 
-func validate_and_reward{
-    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(sender_address : felt, exercise : felt, points : felt):
-    let (validated) = has_validated_exercise(sender_address, exercise)
+func validate_and_reward{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    sender_address : felt, exercise : felt, points : felt
+):
+    let (has_validated) = has_validated_exercise(sender_address, exercise)
 
-    if validated == 0:
+    if has_validated == 0:
         validate_exercise(sender_address, exercise)
         distribute_points(sender_address, points)
         return ()

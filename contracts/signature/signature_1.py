@@ -1,18 +1,24 @@
 import os
 import asyncio
 import sys
+import json
 
-sys.path.append('../')
+sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement
+from utils import deploy_testnet, print_n_wait, mission_statement, transfer_gas
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
-VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+# VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
+# WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+devnet="http://localhost:5000"
+max_fee=2500000000000000
+
+with open("./hints.json", "r") as f:
+  data = json.load(f)
 
 async def main():
     mission_statement()
@@ -36,31 +42,31 @@ async def main():
     #
     # MISSION 2
     #
-    client = Client("testnet")
-    account_address = await deploy_testnet("signature_1", [])
+    # client = Client("testnet")
+    client = Client(net=devnet, chain="testnet")
+
+    account_address = await deploy_testnet(client, data['SIGNATURE_1'])
     contract = await Contract.from_address(account_address, client)
+
+    await transfer_gas(client, data['HELLO_ADDRESS'], account_address)
 
     #
     # MISSION 3
     #
-    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
-    stark_key = private_to_stark_key(private_key)
-    selector = get_selector_from_name("validate_signature_1")
-
     hash = pedersen_hash(INPUT_1, INPUT_2)
     hash_final = pedersen_hash(hash, account_address)
-    signature = sign(hash_final, private_key)
+    signature = sign(hash_final, data['PRIVATE_KEY'])
 
     prepared = contract.functions["__execute__"].prepare(
-        contract_address=VALIDATOR_ADDRESS,
-        selector=selector,
+        contract_address=data['EVALUATOR_ADDRESS'],
+        selector=get_selector_from_name("validate_signature_1"),
         calldata_len=3,
-        calldata=[INPUT_1, INPUT_2, WALLET_ADDRESS])
+        calldata=[INPUT_1, INPUT_2, data['HELLO_ADDRESS']])
     
     #
     # MISSION 4
     #
-    invocation = await prepared.invoke(signature=signature, max_fee=0)
+    invocation = await prepared.invoke(signature=signature, max_fee=max_fee)
 
     await print_n_wait(client, invocation)
 

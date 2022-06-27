@@ -5,8 +5,8 @@
 ####################
 @contract_interface
 namespace IPlayerRegistry:
-    func has_validated_exercise(account : felt, workshop : felt, exercise : felt) -> (
-        has_validated_exercise : felt
+    func check_validated_exercise(account : felt, workshop : felt, exercise : felt) -> (
+        has_validated : felt
     ):
     end
 

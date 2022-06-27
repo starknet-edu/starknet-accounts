@@ -28,10 +28,6 @@ from openzeppelin.token.erc20.library import (
 func teachers_and_exercises_accounts(account: felt) -> (balance: felt):
 end
 
-@storage_var
-func is_transferable_storage() -> (is_transferable_storage : felt):
-end
-
 ####################
 # CONSTRUCTOR
 ####################
@@ -54,16 +50,6 @@ end
 ####################
 # GETTERS
 ####################
-@view
-func is_transferable{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }() -> (is_transferable: felt):
-    let (is_transferable) = is_transferable_storage.read()
-    return (is_transferable)
-end
-
 @view
 func name{
         syscall_ptr : felt*,
@@ -164,25 +150,6 @@ func only_teacher_or_exercice{
     return ()
 end
 
-func _is_transferable{
-        syscall_ptr : felt*, 
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }():
-    let (permission) = is_transferable_storage.read()
-    assert permission = 1
-    return ()
-end
-
-func _set_transferable{
-        syscall_ptr : felt*, 
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(permission: felt):
-    is_transferable_storage.write(permission)
-    return()
-end
-
 ####################
 # EXTERNAL FUNCTIONS
 ####################
@@ -192,7 +159,6 @@ func transfer{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(recipient: felt, amount: Uint256) -> (success: felt):
-    _is_transferable()
     ERC20_transfer(recipient, amount)
     return (1)
 end
@@ -207,7 +173,6 @@ func transferFrom{
         recipient: felt, 
         amount: Uint256
     ) -> (success: felt):
-    _is_transferable()
     ERC20_transferFrom(sender, recipient, amount)
     # Cairo equivalent to 'return (true)'
     return (1)
@@ -288,16 +253,5 @@ func set_teachers{
     }(accounts_len: felt, accounts: felt*):
     only_teacher_or_exercice()
     _set_teacher(accounts_len, accounts)
-    return ()
-end
-
-@external
-func set_transferable{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    }(permission: felt):
-    only_teacher_or_exercice()
-    _set_transferable(permission)
     return ()
 end

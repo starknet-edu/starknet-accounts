@@ -1,18 +1,22 @@
 import os
-import asyncio
 import sys
+import json
 import random
+import asyncio
 
-sys.path.append('../')
-from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement
+sys.path.append('./')
 
+from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, transfer_gas
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 
-VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+devnet="http://localhost:5000"
+max_fee=2500000000000000
+
+with open("./hints.json", "r") as f:
+  data = json.load(f)
 
 async def main():
     mission_statement()
@@ -25,32 +29,35 @@ async def main():
     #
     # MISSION 2
     #
-    client = Client("testnet")
-    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
+    # client = Client("testnet")
+    client = Client(net=devnet, chain="testnet")
+
+    private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
-    account_address = await deploy_testnet("signature_2", [stark_key])
+    account_address = await deploy_testnet(client, data['SIGNATURE_2'], [stark_key])
     contract = await Contract.from_address(account_address, client)
+
+    await transfer_gas(client, data['HELLO_ADDRESS'], account_address)
 
     #
     # MISSION 3
     #
-    validator_contract = await Contract.from_address(VALIDATOR_ADDRESS, client)
     selector = get_selector_from_name("validate_signature_2")
-    calldata = [VALIDATOR_ADDRESS, selector, 2, 1, WALLET_ADDRESS]
+    calldata = [data['EVALUATOR_ADDRESS'], selector, 2, 1, data['HELLO_ADDRESS']]
 
     hash = invoke_tx_hash(account_address, calldata)
     signature = sign(hash, private_key)
 
     prepared1 = contract.functions["__execute__"].prepare(
-        contract_address=VALIDATOR_ADDRESS,
+        contract_address=data['EVALUATOR_ADDRESS'],
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), WALLET_ADDRESS])
+        calldata=[hash, random.randint(0, private_key), data['HELLO_ADDRESS']])
 
     #
     # MISSION 4
     #
-    invocation1 = await prepared1.invoke(signature=signature, max_fee=0)
+    invocation1 = await prepared1.invoke(signature=signature, max_fee=max_fee)
 
     await print_n_wait(client, invocation1)
 
@@ -58,14 +65,12 @@ async def main():
     # MISSION 5
     #
     prepared2 = contract.functions["__execute__"].prepare(
-        contract_address=VALIDATOR_ADDRESS,
+        contract_address=data['EVALUATOR_ADDRESS'],
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), WALLET_ADDRESS])
-    invocation2 = await prepared2.invoke(signature=signature, max_fee=0)
+        calldata=[hash, random.randint(0, private_key), data['HELLO_ADDRESS']])
+    invocation2 = await prepared2.invoke(signature=signature, max_fee=max_fee)
 
     await print_n_wait(client, invocation2)
-
-
 
 asyncio.run(main())
