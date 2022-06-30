@@ -6,8 +6,7 @@ sys.path.append('./')
 
 from utils import deploy_account, print_n_wait, mission_statement, fund_account, get_evaluator
 from hashlib import sha256
-from ecdsa import SigningKey, VerifyingKey, SECP256k1
-from starknet_py.contract import Contract
+from ecdsa import SigningKey, SECP256k1
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 
@@ -52,7 +51,7 @@ async def main():
 
     await fund_account(abstraction_addr)
 
-    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    _, evaluator_address = await get_evaluator(client)
 
     #
     # MISSION 3
@@ -95,8 +94,7 @@ async def main():
         selector=get_selector_from_name("validate_abstraction"),
         nonce=nonce,
         calldata_len=len(calldata),
-        calldata=calldata
-    )
+        calldata=calldata)
 
     abFee = int((data['MAX_FEE']*135)/10)
     invocation = await prepared.invoke(max_fee=abFee)

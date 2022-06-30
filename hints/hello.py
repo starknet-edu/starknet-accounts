@@ -1,38 +1,46 @@
+import os
 import json
 import pytest
 
-from evaluator import evaluator_setup, starknet
+from starkware.starknet.testing.starknet import Starknet
 from starkware.starknet.testing.contract import StarknetContract
 from starkware.starknet.public.abi import get_selector_from_name
 
-with open("hints.json", "r") as f:
+HELLO_FILE = os.path.join("../contracts/hello", "hello.cairo")
+
+with open("../contracts/hints.json", "r") as f:
   data = json.load(f)
 
-@pytest.mark.asyncio
-async def test_hello(evaluator_setup: StarknetContract):
-    (evaluator, registry, erc20) = evaluator_setup
+@pytest.fixture
+async def starknet() -> Starknet:
+    return await Starknet.empty()
 
-    hello = await starknet.deploy(
-        source=data['HELLO_FILE'],
+@pytest.fixture
+async def hello(starknet: Starknet) -> StarknetContract:
+    return await starknet.deploy(
+        source=HELLO_FILE,
         constructor_calldata=[],
     )
 
-    proxy = await starknet.deploy(
-        source=data['PROXY_FILE'],
-        constructor_calldata=[hello.contract_address],
+@pytest.fixture
+async def evaluator(starknet: Starknet) -> StarknetContract:
+    return await starknet.deploy(
+        source="evaluator_mock.cairo",
+        cairo_path=["../contracts"],
+        constructor_calldata=[data['PRIVATE_KEY'], data['PUBLIC_KEY'], data['INPUT_1'], data['INPUT_2']],
     )
-    print("GOT HERE", proxy.contract_address)
 
-    # rand_info = await evaluator.get_random().call()
-    # print("RAND_INFO: ", eval.contract_address, registry.contract_address, hello.contract_address)
-    # selector = get_selector_from_name("validate_hello")
+@pytest.mark.asyncio
+async def test_hello(
+    hello: StarknetContract,
+    evaluator: StarknetContract,
+):
+    rand_info = await evaluator.get_random().call()
 
-    # exec_info = await hello.__execute__(
-    #     contract_address=validator.contract_address,
-    #     selector=selector,
-    #     calldata=[rand_info.result.rand, data['DUMMY_ACCOUNT']],
-    # ).invoke()
-    # assert exec_info.result.retdata[0] == 1
+    exec_info = await hello.__execute__(
+        contract_address=evaluator.contract_address,
+        selector=get_selector_from_name("validate_hello"),
+        calldata=[rand_info.result.rand, data['DUMMY_ACCOUNT']],
+    ).invoke()
 
-    # balance = await ACT.balanceOf(account=data['DUMMY_ACCOUNT']).call()
-    # assert balance.result.balance.low == 100000000000000000000
+    assert exec_info.result.retdata[0] == 1

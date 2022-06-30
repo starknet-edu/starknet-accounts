@@ -12,14 +12,15 @@ from starkware.python.utils import from_bytes
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.core.os.transaction_hash.transaction_hash import TransactionHashPrefix, calculate_transaction_hash_common
 
-with open("./hints.json", "r") as f:
-  data = json.load(f)
-
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-TESTNET_ID = from_bytes(b"SN_GOERLI")
 ACCOUNT_FILE = os.path.join(ROOT_DIR, 'account.json')
+HINTS_FILE = os.path.join(ROOT_DIR, 'hints.json')
+TESTNET_ID = from_bytes(b"SN_GOERLI")
 PAYDAY = get_selector_from_name("payday")
 SUBMIT_TX = get_selector_from_name("submit")
+
+with open(HINTS_FILE, "r") as f:
+  data = json.load(f)
 
 def invoke_tx_hash(addr, calldata):
     exec_selector = get_selector_from_name("__execute__")
@@ -72,14 +73,13 @@ async def deploy_account(client, contract_path="", constructor_args=[], addition
     if os.getenv('ACCOUNT_CACHE') == "false":
         print("\u001b[35mDisabled local account cache\u001b[0m\n")
     else:
-        if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
-            with open(ACCOUNT_FILE) as json_file:
-                data = json.load(json_file)
-                if CONTRACT_ADDRESS in data:
-                    print("\u001b[35mFound local contract: {}\u001b[0m\n".format(data[CONTRACT_ADDRESS]))
-                    
-                    cached = await Contract.from_address(int(data[CONTRACT_ADDRESS], 16), client, True)
-                    return cached, int(data[CONTRACT_ADDRESS], 16)
+        with open(ACCOUNT_FILE) as json_file:
+            data = json.load(json_file)
+            if CONTRACT_ADDRESS in data[client.net]:
+                print("\u001b[35mFound local contract: {}\u001b[0m\n".format(data[client.net][CONTRACT_ADDRESS]))
+                
+                cached = await Contract.from_address(int(data[client.net][CONTRACT_ADDRESS], 16), client, True)
+                return cached, int(data[client.net][CONTRACT_ADDRESS], 16)
 
     os.system("starknet-compile --account_contract {}.cairo --output {}_compiled.json".format(contract_path, contract_path, contract_path))
 
@@ -102,7 +102,7 @@ async def deploy_account(client, contract_path="", constructor_args=[], addition
     res = await client.get_transaction(deployment_result.hash)
 
     if os.getenv('ACCOUNT_CACHE') != "false":
-        data[CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
+        data[client.net][CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
         with open(ACCOUNT_FILE, 'w') as outfile:
             json.dump(data, outfile, sort_keys=True, indent=4)
         print("\tSuccess - cached in accounts.json")
@@ -112,19 +112,17 @@ async def deploy_account(client, contract_path="", constructor_args=[], addition
     return deployment_result.deployed_contract, res.transaction.contract_address
 
 async def contract_cache_check(client, contract):
-    if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
-        with open(ACCOUNT_FILE) as outfile:
-            acc_data = json.load(outfile)
+    with open(ACCOUNT_FILE) as outfile:
+        acc_data = json.load(outfile)
 
-        if contract in acc_data:
-            cached_addr = int(acc_data[contract], 16)
-            cached = await Contract.from_address(cached_addr, client, True)
-            return True, cached, cached_addr
-    
+    if contract in acc_data[client.net]:
+        cached_addr = int(acc_data[client.net][contract], 16)
+        cached = await Contract.from_address(cached_addr, client, True)
+        return True, cached, cached_addr
+
     return False, "", ""
 
 async def compile_deploy(client, contract="", args=[], salt=0):
-    print("CLIENT: ", client.net)
     hit, cached, cached_addr = await contract_cache_check(client, contract)
     if hit:
         return cached, cached_addr
@@ -137,12 +135,12 @@ async def compile_deploy(client, contract="", args=[], salt=0):
     await client.wait_for_tx(deployment_result.hash)
     res = await client.get_transaction(deployment_result.hash)
 
-    contract_cache(contract, res.transaction.contract_address)
+    contract_cache(client.net, contract, res.transaction.contract_address)
 
     return deployment_result.deployed_contract, res.transaction.contract_address
 
 async def fund_account(toAddr):
-    acc_client = get_account_client()
+    acc_client, _ = get_account_client()
     gas = await Contract.from_address(data['DEVNET_ETH'], acc_client, True)
     await(
         await gas.functions['transfer'].invoke(toAddr, data['TRANSFER_AMOUNT'], max_fee=data['MAX_FEE'])
@@ -152,14 +150,13 @@ async def get_evaluator(client):
     _, evaluator, evaluator_address = await contract_cache_check(client, data['EVALUATOR'])
     return evaluator, evaluator_address
 
-def contract_cache(contract, addr):
+def contract_cache(env, contract, addr):
     acc_data = dict()
-    if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
-        with open(ACCOUNT_FILE) as json_file:
-            acc_data = json.load(json_file)
+    with open(ACCOUNT_FILE) as json_file:
+        acc_data = json.load(json_file)
     
     with open(ACCOUNT_FILE, 'w') as outfile:
-        acc_data[contract] = "0x{:02x}".format(addr)
+        acc_data[env][contract] = "0x{:02x}".format(addr)
         json.dump(acc_data, outfile, sort_keys=True, indent=4)
 
 def get_client():
@@ -188,7 +185,6 @@ def get_account_client():
         return acc_client, addr
 
     else:
-        print("DEVNET: ", args.testnet)
         addr = data['DEVNET_ACCOUNT']['ADDRESS']
         acc_client = AccountClient(
             address=addr,

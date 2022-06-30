@@ -1,44 +1,40 @@
 import os
+import json
 import pytest
 
 from hashlib import sha256
-from ecdsa import SigningKey, VerifyingKey, SECP256k1
+from ecdsa import SigningKey, SECP256k1
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starknet.testing.contract import StarknetContract
 from starkware.starknet.public.abi import get_selector_from_name
 
+with open("../contracts/hints.json", "r") as f:
+  data = json.load(f)
+
 SHIFT = 86 
 BASE = 2 ** SHIFT
 MASK = BASE - 1
+ABSTRACT_PRIV=data['ABSTRACT_PRIV']
 
 # The path to the contract source code.
 ABSTRACTION_FILE = os.path.join("../contracts/abstraction", "abstraction.cairo")
-VALIDATOR_FILE = os.path.join("../contracts/validator", "validator.cairo")
-ACT_FILE = os.path.join("../contracts/validator", "ACT.cairo")
-
-DUMMY_ACCOUNT = 0x03fe5102616ee1529380b0fac1694c5cc796d8779c119653b3f41b263d4c4961
-PRIVATE_KEY = 28269553036454149273332760011886696253239742350009903329945699224417844975
-PUBLIC_KEY = 1397467974901608740509397132501478376338248400622004458128166743350896051882
-INPUT_1 = 2938
-INPUT_2 = 4337
-
-ABSTRACT_PRIV=0x2f7b9db25111c73326215d8b709b246103f674d95eccbbec8780214ffd69c8fc
 
 @pytest.fixture
 async def starknet() -> Starknet:
     return await Starknet.empty()
 
 @pytest.fixture
-async def validator(starknet: Starknet) -> StarknetContract:
+async def evaluator(starknet: Starknet) -> StarknetContract:
     return await starknet.deploy(
-        source=VALIDATOR_FILE,
-        constructor_calldata=[PRIVATE_KEY, PUBLIC_KEY, INPUT_1, INPUT_2],
+        source="evaluator_mock.cairo",
+        cairo_path=["../contracts"],
+        constructor_calldata=[data['PRIVATE_KEY'], data['PUBLIC_KEY'], data['INPUT_1'], data['INPUT_2']],
     )
 
 @pytest.fixture
 async def abstraction(starknet: Starknet) -> StarknetContract:
-    PUB_X=0x95cd669eb2bd5ede97706551fbe2bc210940ec7797da33dee43814e292f93837
-    PUB_Y=0x339d4e13c088c0a26c176b3d0505177a70f50345c874a4d4cca1c8b1f05b72bd
+    PUB_X=data['ABSTRACT_PUB_X']
+    PUB_Y=data['ABSTRACT_PUB_Y']
 
     calldata_x = []
     calldata_y = []
@@ -56,16 +52,9 @@ async def abstraction(starknet: Starknet) -> StarknetContract:
 
 @pytest.mark.asyncio
 async def test_abstraction(
-    starknet: Starknet,
-    validator: StarknetContract,
     abstraction: StarknetContract,
+    evaluator: StarknetContract,
 ):
-    ACT = await starknet.deploy(
-        source=ACT_FILE,
-        constructor_calldata=[validator.contract_address],
-    )
-    await validator.set_rewards_contract(addr=ACT.contract_address).invoke()
-
     sk = SigningKey.from_string(ABSTRACT_PRIV.to_bytes(32, 'big'), curve=SECP256k1, hashfunc=sha256)
 
     signature = sk.sign(b"message")
@@ -93,12 +82,10 @@ async def test_abstraction(
     nonce = nonce_info.result.res
 
     exec_info = await abstraction.__execute__(
-        contract_address=validator.contract_address,
+        contract_address=evaluator.contract_address,
         selector=get_selector_from_name("validate_abstraction"),
         nonce=nonce,
-        calldata=[*calldata_h, *calldata_r, *calldata_s, DUMMY_ACCOUNT],
+        calldata=[*calldata_h, *calldata_r, *calldata_s, data['DUMMY_ACCOUNT']],
     ).invoke()
-    assert exec_info.result.retdata[0] == 1
 
-    balance = await ACT.balanceOf(account=DUMMY_ACCOUNT).call()
-    assert balance.result.balance.low == 2000000000000000000000
+    assert exec_info.result.retdata[0] == 1

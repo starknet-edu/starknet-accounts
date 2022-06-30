@@ -50,7 +50,7 @@ async def main():
     sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
     await fund_account(sig3_addr)
 
-    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    _, evaluator_address = await get_evaluator(client)
 
     #
     # MISSION 7

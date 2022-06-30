@@ -34,7 +34,7 @@ async def main():
 
     await fund_account(sig3_addr)
 
-    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    _, evaluator_address = await get_evaluator(client)
     
     #
     # MISSION 4
