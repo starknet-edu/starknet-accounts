@@ -1,18 +1,17 @@
-import os
-import asyncio
 import sys
+import json
+import asyncio
 
-sys.path.append('../')
+sys.path.append('./')
 
-from utils import deploy_testnet, invoke_tx_hash, mission_statement, print_n_wait
+from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, devnet_funding, get_evaluator
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
-from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
-VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+with open("./hints.json", "r") as f:
+  data = json.load(f)
 
 async def main():
     mission_statement()
@@ -24,52 +23,57 @@ async def main():
     #
     # MISSION 2
     #
-    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
+    private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
-    client = Client("testnet")
-    account_address = await deploy_testnet("multicall", [stark_key])
-    contract = await Contract.from_address(account_address, client)
+    # client = Client("testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
 
+    multicall, multicall_addr = await deploy_testnet(client=client, contract_path=data['MULTICALL'], constructor_args=[stark_key])
+    
+    await devnet_funding(data, multicall_addr)
+
+    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    
     #
     # MISSION 3
     #
     selector = get_selector_from_name("validate_multicall")
     call_array = [
         {
-            "to": VALIDATOR_ADDRESS,
+            "to": evaluator_address,
             "selector": selector,
             "data_offset": 0,
             "data_len": 1
         },
         {
-            "to": VALIDATOR_ADDRESS,
+            "to": evaluator_address,
             "selector": selector,
             "data_offset": 1,
             "data_len": 1
         },
         {
-            "to": VALIDATOR_ADDRESS,
+            "to": evaluator_address,
             "selector": selector,
             "data_offset": 2,
             "data_len": 1
         },
     ]
     
-    (nonce, ) = await contract.functions["get_nonce"].call()
-    inner_calldata = [WALLET_ADDRESS, WALLET_ADDRESS, WALLET_ADDRESS]
+    (nonce, ) = await multicall.functions["get_nonce"].call()
+    inner_calldata = [data['DEVNET_ACCOUNT']['ADDRESS'], data['DEVNET_ACCOUNT']['ADDRESS'], data['DEVNET_ACCOUNT']['ADDRESS']]
     calldata = [
         nonce, len(call_array),
-        VALIDATOR_ADDRESS, selector, 0, 1,
-        VALIDATOR_ADDRESS, selector, 1, 1,
-        VALIDATOR_ADDRESS, selector, 2, 1,
+        evaluator_address, selector, 0, 1,
+        evaluator_address, selector, 1, 1,
+        evaluator_address, selector, 2, 1,
         len(inner_calldata), *inner_calldata
     ]
 
-    hash = invoke_tx_hash(account_address, calldata)
+    hash = invoke_tx_hash(multicall_addr, calldata)
     signature = sign(hash, private_key)
 
-    prepared = contract.functions["__execute__"].prepare(
+    prepared = multicall.functions["__execute__"].prepare(
         nonce=nonce,
         call_array_len=len(call_array),
         call_array=call_array,
@@ -80,7 +84,7 @@ async def main():
     #
     # MISSION 4
     #
-    invocation = await prepared.invoke(signature=signature, max_fee=0)
+    invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)
 

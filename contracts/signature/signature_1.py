@@ -44,6 +44,7 @@ async def main():
     await devnet_funding(data, sig1_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    
     #
     # MISSION 3
     #

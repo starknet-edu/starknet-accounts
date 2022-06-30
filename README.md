@@ -28,11 +28,6 @@ pip3 install --upgrade starknet.py
 pip3 install --upgrade pytest pytest-asyncio
 pip3 install --upgrade cairo-lang
 
-# libraries for abstraction demo(assumes git)
-git clone git@github.com:starkware-libs/cairo-examples.git ~/cairo_venv/lib/python3.7/site-packages/cairo_examples
-find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec sed -i -e 's/from big/from cairo_examples.secp.big/g' {} \;
-find ~/cairo_venv/lib/python3.7/site-packages/cairo_examples/secp -type f -exec sed -i -e 's/from secp/from cairo_examples.secp.secp/g' {} \;
-
 # set environment variables
 export STARKNET_NETWORK=alpha-goerli
 export VALIDATOR_ADDRESS=0x197c942a62c77d18249adef3c6a8fd89b8725330b43640a5f05850a871fb401

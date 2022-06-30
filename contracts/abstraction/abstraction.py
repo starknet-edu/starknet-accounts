@@ -1,24 +1,22 @@
-import os
-import asyncio
 import sys
+import json
+import asyncio
 
-sys.path.append('../')
+sys.path.append('./')
 
-from utils import mission_statement, deploy_testnet, print_n_wait
-
+from utils import deploy_testnet, print_n_wait, mission_statement, devnet_funding, get_evaluator
 from hashlib import sha256
 from ecdsa import SigningKey, VerifyingKey, SECP256k1
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.crypto.signature.signature import private_to_stark_key, sign
-from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
 SHIFT = 86
 BASE = 2**SHIFT
 MASK = BASE - 1
-VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+
+with open("./hints.json", "r") as f:
+  data = json.load(f)
 
 async def main():
     mission_statement()
@@ -28,9 +26,9 @@ async def main():
     print("\t 4) format hash and signature with appropriate bitwidths")
     print("\t 5) invoke the verifier function\u001b[0m\n")
 
-    ABSTRACT_PRIV = 0x2f7b9db25111c73326215d8b709b246103f674d95eccbbec8780214ffd69c8fc
-    PUB_X = 0x95cd669eb2bd5ede97706551fbe2bc210940ec7797da33dee43814e292f93837
-    PUB_Y = 0x339d4e13c088c0a26c176b3d0505177a70f50345c874a4d4cca1c8b1f05b72bd
+    ABSTRACT_PRIV = data['ABSTRACT_PRIV']
+    PUB_X = data['ABSTRACT_PUB_X']
+    PUB_Y = data['ABSTRACT_PUB_Y']
 
     #
     # MISSION 2
@@ -47,20 +45,25 @@ async def main():
         calldata[0]["y"]["d{}".format(i)] = PUB_Y & MASK
         PUB_Y >>= SHIFT
 
-    client = Client("testnet")
-    account_address = await deploy_testnet("abstraction", calldata)
-    contract = await Contract.from_address(account_address, client)
+    # client = Client("testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
+
+    abstraction, abstraction_addr = await deploy_testnet(client=client, contract_path=data['ABSTRACTION'], constructor_args=calldata)
+
+    await devnet_funding(data, abstraction_addr)
+
+    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
 
     #
     # MISSION 3
     #
     sk = SigningKey.from_string(ABSTRACT_PRIV.to_bytes(32, 'big'), curve=SECP256k1, hashfunc=sha256)
 
-    data = b"Patience is bitter, but its fruit is sweet..."
-    signature = sk.sign(data)
+    msg_data = b"Patience is bitter, but its fruit is sweet..."
+    signature = sk.sign(msg_data)
 
     m = sha256()
-    m.update(data)
+    m.update(msg_data)
     hash = int.from_bytes(m.digest(), "big")
     sig_r = int.from_bytes(signature[:32], "big")
     sig_s = int.from_bytes(signature[32:], "big")
@@ -81,20 +84,22 @@ async def main():
         bigS.append(sig_s & MASK)
         sig_s >>= SHIFT
 
-    calldata = [*bigHash, *bigR, *bigS, WALLET_ADDRESS]
+    calldata = [*bigHash, *bigR, *bigS, data['DEVNET_ACCOUNT']['ADDRESS']]
 
     #
     # MISSION 5
     #
-    (nonce, ) = await contract.functions["get_nonce"].call()
-    prepared = contract.functions["__execute__"].prepare(
-        contract_address=VALIDATOR_ADDRESS,
+    (nonce, ) = await abstraction.functions["get_nonce"].call()
+    prepared = abstraction.functions["__execute__"].prepare(
+        contract_address=evaluator_address,
         selector=get_selector_from_name("validate_abstraction"),
         nonce=nonce,
         calldata_len=len(calldata),
         calldata=calldata
     )
-    invocation = await prepared.invoke(max_fee=0)
+
+    abFee = int((data['MAX_FEE']*135)/10)
+    invocation = await prepared.invoke(max_fee=abFee)
 
     await print_n_wait(client, invocation)
 

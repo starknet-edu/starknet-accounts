@@ -24,17 +24,18 @@ async def main():
     #
     # MISSION 2
     #
+    private_key = data['PRIVATE_KEY']
+    stark_key = private_to_stark_key(private_key)
+
     # client = Client("testnet")
     client = Client(net=data['DEVNET_URL'], chain="testnet")
 
-    private_key = data['PRIVATE_KEY']
-    stark_key = private_to_stark_key(private_key)
     sig2, sig2_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_2'], constructor_args=[stark_key])
     
-
     await devnet_funding(data, sig2_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    
     #
     # MISSION 3
     #

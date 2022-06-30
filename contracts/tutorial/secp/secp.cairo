@@ -7,9 +7,9 @@
 #       0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8
 #   )
 
-from utils.secp.bigint import BASE, BigInt3, bigint_mul, nondet_bigint3
-from utils.secp.secp_def import N0, N1, N2
-from utils.secp.secp_ec import EcPoint, ec_add, ec_mul
+from tutorial.secp.bigint import BASE, BigInt3, bigint_mul, nondet_bigint3
+from tutorial.secp.secp_def import N0, N1, N2
+from tutorial.secp.secp_ec import EcPoint, ec_add, ec_mul
 
 from starkware.cairo.common.math import assert_nn_le, assert_not_zero
 

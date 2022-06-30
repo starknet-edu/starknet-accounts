@@ -16,16 +16,16 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.uint256 import Uint256
 
-from utils.secp.bigint import BigInt3
-from utils.secp.secp import verify_ecdsa
-from utils.secp.secp_ec import EcPoint
+from tutorial.secp.bigint import BigInt3
+from tutorial.secp.secp import verify_ecdsa
+from tutorial.secp.secp_ec import EcPoint
 
-from utils.tutorial import (
+from tutorial.tutorial import (
     ex_initializer,
     validate_and_reward,
     teacher_accounts,
     assign_rank_to_player,
-    max_rank
+    max_rank,
 )
 
 ####################
@@ -352,7 +352,7 @@ func validate_signature_3{
     assert caller = tx_info.account_contract_address
 
     let (curr_nonce) = IAccountSig.get_nonce(contract_address=caller)
-    assert curr_nonce = input
+    assert input = curr_nonce
     let (hash) = hash2{hash_ptr=pedersen_ptr}(tx_hash, curr_nonce - 1)
 
     _is_valid_signature(hash=hash, signature_len=tx_info.signature_len, signature=tx_info.signature)

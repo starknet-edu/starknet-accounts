@@ -1,18 +1,16 @@
-import os
-import asyncio
 import sys
+import json
+import asyncio
 
-sys.path.append('../')
+sys.path.append('./')
 
-from utils import deploy_testnet, invoke_tx_hash, mission_statement, print_n_wait
-from starknet_py.contract import Contract
+from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, devnet_funding, get_evaluator
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
-from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
-VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
+with open("./hints.json", "r") as f:
+  data = json.load(f)
 
 async def main():
     mission_statement()
@@ -34,90 +32,89 @@ async def main():
     #
     # MISSION 6
     #
-    private_key = 0x100000000000000000000000000000000000000000000000000000DEADBEEF
+    # client = Client("testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
+
+    private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
+    sig1, sig1_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
+    await devnet_funding(data, sig1_addr)
 
     private_key_2 = private_key + 1
     stark_key_2 = private_to_stark_key(private_key_2)
-
+    sig2, sig2_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_2], additional_data=2)
+    await devnet_funding(data, sig2_addr)
+    
     private_key_3 = private_key + 2
     stark_key_3 = private_to_stark_key(private_key_3)
+    sig3, sig3_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
+    await devnet_funding(data, sig3_addr)
 
-    client = Client("testnet")
-    signer_1_address = await deploy_testnet("signature_basic", [stark_key], 1)
-    signer_1 = await Contract.from_address(signer_1_address, client)
-
-    signer_2_address = await deploy_testnet("signature_basic", [stark_key_2], 2)
-    signer_2 = await Contract.from_address(signer_2_address, client)
-
-    signer_3_address = await deploy_testnet("signature_basic", [stark_key_3], 3)
-    signer_3 = await Contract.from_address(signer_3_address, client)
+    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
 
     #
     # MISSION 7
     #
-    multi_address = await deploy_testnet("multisig", [[signer_1_address, signer_2_address, signer_3_address]])
+    _, multi_addr = await deploy_testnet(client=client, contract_path=data['MULTISIG'], constructor_args=[[sig1_addr, sig2_addr, sig3_addr]])
     
     #
     # MISSION 8
     #
     validator_selector = get_selector_from_name("validate_multisig")
     submit_selector = get_selector_from_name("submit_tx")
-    submit_event_selector = get_selector_from_name("submit")
 
-    (nonce_1, ) = await signer_1.functions["get_nonce"].call()
-    inner_calldata=[VALIDATOR_ADDRESS, validator_selector, 2, 1, WALLET_ADDRESS]
-    outer_calldata=[multi_address, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
+    (nonce_1, ) = await sig1.functions["get_nonce"].call()
+    inner_calldata=[evaluator_address, validator_selector, 2, 1, data['DEVNET_ACCOUNT']['ADDRESS']]
+    outer_calldata=[multi_addr, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
 
-    hash = invoke_tx_hash(signer_1_address, outer_calldata)
+    hash = invoke_tx_hash(sig1_addr, outer_calldata)
     sub_signature = sign(hash, private_key)
 
-    sub_prepared = signer_1.functions["__execute__"].prepare(
-        contract_address=multi_address,
+    sub_prepared = sig1.functions["__execute__"].prepare(
+        contract_address=multi_addr,
         selector=submit_selector,
         nonce=nonce_1,
         calldata_len=len(inner_calldata),
         calldata=inner_calldata)
-    sub_invocation = await sub_prepared.invoke(signature=sub_signature, max_fee=0)
+    sub_invocation = await sub_prepared.invoke(signature=sub_signature, max_fee=data['MAX_FEE'])
 
-    data = await print_n_wait(client, sub_invocation)
+    eventData = await print_n_wait(client, sub_invocation)
 
     #
     # MISSION 9
     #
     confirm_selector = get_selector_from_name("confirm_tx")
-    confirm_event_selector = get_selector_from_name("confirm")
 
-    (nonce_2, ) = await signer_2.functions["get_nonce"].call()
-    conf_calldata=[multi_address, confirm_selector, nonce_2, 1, data[1]]
-    conf_hash = invoke_tx_hash(signer_2_address, conf_calldata)
+    (nonce_2, ) = await sig2.functions["get_nonce"].call()
+    conf_calldata=[multi_addr, confirm_selector, nonce_2, 1, eventData[1]]
+    conf_hash = invoke_tx_hash(sig2_addr, conf_calldata)
 
     conf_signature = sign(conf_hash, private_key_2)
 
-    conf_prepared = signer_2.functions["__execute__"].prepare(
-        contract_address=multi_address,
+    conf_prepared = sig2.functions["__execute__"].prepare(
+        contract_address=multi_addr,
         selector=confirm_selector,
         nonce=nonce_2,
         calldata_len=2,
-        calldata=[data[1]])
-    conf_invocation = await conf_prepared.invoke(signature=conf_signature, max_fee=0)
+        calldata=[eventData[1]])
+    conf_invocation = await conf_prepared.invoke(signature=conf_signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, conf_invocation)
 
-    (nonce_3, ) = await signer_3.functions["get_nonce"].call()
-    conf_2_calldata=[multi_address, confirm_selector, nonce_3, 1, data[1]]
+    (nonce_3, ) = await sig3.functions["get_nonce"].call()
+    conf_2_calldata=[multi_addr, confirm_selector, nonce_3, 1, eventData[1]]
 
-    conf_2_hash = invoke_tx_hash(signer_3_address, conf_2_calldata)
+    conf_2_hash = invoke_tx_hash(sig3_addr, conf_2_calldata)
 
     conf_2_signature = sign(conf_2_hash, private_key_3)
 
-    conf_2_prepared = signer_3.functions["__execute__"].prepare(
-        contract_address=multi_address,
+    conf_2_prepared = sig3.functions["__execute__"].prepare(
+        contract_address=multi_addr,
         selector=confirm_selector,
         nonce=nonce_3,
         calldata_len=1,
-        calldata=[data[1]])
-    conf_2_invocation = await conf_2_prepared.invoke(signature=conf_2_signature, max_fee=0)
+        calldata=[eventData[1]])
+    conf_2_invocation = await conf_2_prepared.invoke(signature=conf_2_signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, conf_2_invocation)
 
@@ -125,19 +122,18 @@ async def main():
     # MISSION 10
     #
     execute_selector = get_selector_from_name("__execute__")
-    execute_event_selector = get_selector_from_name("execute")
-    exec_calldata=[multi_address, execute_selector, nonce_1+1, 1, data[1]]
+    exec_calldata=[multi_addr, execute_selector, nonce_1+1, 1, eventData[1]]
 
-    exec_hash = invoke_tx_hash(signer_1_address, exec_calldata)
+    exec_hash = invoke_tx_hash(sig1_addr, exec_calldata)
     exec_signature = sign(exec_hash, private_key)
     
-    exec_prepared = signer_1.functions["__execute__"].prepare(
-        contract_address=multi_address,
+    exec_prepared = sig1.functions["__execute__"].prepare(
+        contract_address=multi_addr,
         selector=execute_selector,
         nonce=nonce_1+1,
         calldata_len=1,
-        calldata=[data[1]])
-    exec_invocation = await exec_prepared.invoke(signature=exec_signature, max_fee=0)
+        calldata=[eventData[1]])
+    exec_invocation = await exec_prepared.invoke(signature=exec_signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, exec_invocation)
 

@@ -11,25 +11,24 @@ from starkware.starknet.public.abi import get_selector_from_name
 from starkware.cairo.common.hash_state import compute_hash_on_elements
 from starkware.starknet.core.os.transaction_hash.transaction_hash import TransactionHashPrefix, calculate_transaction_hash_common
 
-VERSION = 0
-MAX_FEE = 0
-TESTNET = from_bytes(b"SN_GOERLI")
+with open("./hints.json", "r") as f:
+  data = json.load(f)
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+TESTNET = from_bytes(b"SN_GOERLI")
 ACCOUNT_FILE = os.path.join(ROOT_DIR, 'account.json')
 PAYDAY = get_selector_from_name("payday")
 SUBMIT_TX = get_selector_from_name("submit")
-devnet="http://localhost:5000"
-acc_file="account.json"
 
 def invoke_tx_hash(addr, calldata):
     exec_selector = get_selector_from_name("__execute__")
     return calculate_transaction_hash_common(
         tx_hash_prefix=TransactionHashPrefix.INVOKE,
-        version=VERSION,
+        version=data['VERSION'],
         contract_address=addr,
         entry_point_selector=exec_selector,
         calldata=calldata,
-        max_fee=MAX_FEE,
+        max_fee=data['MAX_FEE'],
         chain_id=TESTNET,
         additional_data=[],
     )
@@ -66,7 +65,7 @@ async def print_n_wait(client: Client, invocation: InvokeFunction):
 
 async def deploy_testnet(client, contract_path="", constructor_args=[], additional_data=None):
     data = dict()
-    CONTRACT_ADDRESS="{}_ADDRESS".format(contract_path.upper())
+    CONTRACT_ADDRESS="{}".format(contract_path)
     if additional_data:
         CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
     if os.getenv('ACCOUNT_CACHE') == "false":
@@ -112,8 +111,8 @@ async def deploy_testnet(client, contract_path="", constructor_args=[], addition
     return deployment_result.deployed_contract, res.transaction.contract_address
 
 async def contract_cache_check(client, contract):
-    if os.path.exists(acc_file) and os.path.getsize(acc_file) > 0:
-        with open(acc_file) as outfile:
+    if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
+        with open(ACCOUNT_FILE) as outfile:
             acc_data = json.load(outfile)
 
         if contract in acc_data:
@@ -156,17 +155,17 @@ def devnet_account(data):
     acc_client = AccountClient(
         address=addr,
         key_pair=KeyPair(data['DEVNET_ACCOUNT']['PRIVATE'], data['DEVNET_ACCOUNT']['PUBLIC']),
-        net=devnet,
+        net=data['DEVNET_URL'],
         chain=StarknetChainId.TESTNET)
     
     return acc_client, addr
 
 def contract_cache(contract, addr):
     acc_data = dict()
-    if os.path.exists(acc_file) and os.path.getsize(acc_file) > 0:
-        with open(acc_file) as json_file:
+    if os.path.exists(ACCOUNT_FILE) and os.path.getsize(ACCOUNT_FILE) > 0:
+        with open(ACCOUNT_FILE) as json_file:
             acc_data = json.load(json_file)
     
-    with open(acc_file, 'w') as outfile:
+    with open(ACCOUNT_FILE, 'w') as outfile:
         acc_data[contract] = "0x{:02x}".format(addr)
         json.dump(acc_data, outfile, sort_keys=True, indent=4)

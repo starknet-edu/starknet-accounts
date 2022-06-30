@@ -1,5 +1,5 @@
-from utils.secp.bigint import BigInt3, UnreducedBigInt3, nondet_bigint3
-from utils.secp.secp_field import is_zero, unreduced_mul, unreduced_sqr, verify_zero
+from tutorial.secp.bigint import BigInt3, UnreducedBigInt3, nondet_bigint3
+from tutorial.secp.secp_field import is_zero, unreduced_mul, unreduced_sqr, verify_zero
 
 # Represents a point on the elliptic curve.
 # The zero point is represented using pt.x=0, as there is no point on the curve with this x value.

@@ -1,9 +1,9 @@
 %lang starknet
 %builtins range_check
 
-from utils.secp.bigint import BigInt3
-from utils.secp.secp.secp import verify_ecdsa
-from utils.secp.secp.secp_ec import EcPoint
+from tutorial.secp.bigint import BigInt3
+from tutorial.secp.secp.secp import verify_ecdsa
+from tutorial.secp.secp.secp_ec import EcPoint
 
 # Verifies a secp256k1 ECDSA signature.
 @view

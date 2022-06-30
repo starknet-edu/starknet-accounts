@@ -11,9 +11,6 @@ from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 
-devnet="http://localhost:5000"
-max_fee=2500000000000000
-
 with open("./hints.json", "r") as f:
   data = json.load(f)
 
@@ -39,11 +36,11 @@ async def main():
     await devnet_funding(data, sig3_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    
     #
     # MISSION 4
     #
     (nonce, ) = await sig3.functions["get_nonce"].call()
-    print("NONCE: ", nonce)
     selector = get_selector_from_name("validate_signature_3")
     calldata = [evaluator_address, selector, 2, nonce, data['DEVNET_ACCOUNT']['ADDRESS']]
 
@@ -63,6 +60,5 @@ async def main():
     invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)
-
 
 asyncio.run(main())
