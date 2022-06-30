@@ -4,7 +4,7 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, devnet_funding, get_evaluator
+from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
@@ -37,25 +37,25 @@ async def main():
 
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
-    sig1, sig1_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
-    await devnet_funding(data, sig1_addr)
+    sig1, sig1_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
+    await fund_account(sig1_addr)
 
     private_key_2 = private_key + 1
     stark_key_2 = private_to_stark_key(private_key_2)
-    sig2, sig2_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_2], additional_data=2)
-    await devnet_funding(data, sig2_addr)
+    sig2, sig2_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_2], additional_data=2)
+    await fund_account(sig2_addr)
     
     private_key_3 = private_key + 2
     stark_key_3 = private_to_stark_key(private_key_3)
-    sig3, sig3_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
-    await devnet_funding(data, sig3_addr)
+    sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
+    await fund_account(sig3_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
 
     #
     # MISSION 7
     #
-    _, multi_addr = await deploy_testnet(client=client, contract_path=data['MULTISIG'], constructor_args=[[sig1_addr, sig2_addr, sig3_addr]])
+    _, multi_addr = await deploy_account(client=client, contract_path=data['MULTISIG'], constructor_args=[[sig1_addr, sig2_addr, sig3_addr]])
     
     #
     # MISSION 8

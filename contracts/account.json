@@ -1,0 +1,8 @@
+{
+    "testnet": {
+        "evaluator": "0x4f3bfc2034e30bd25f43502e3c45d3ebe03f9d3060b4c84003690b9a68a41e1",
+        "token/TDERC20": "0x134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f",
+        "tutorial/player_registry": "0x45f8c0488cbe3fca19b9cc5ad88468b52b30195e1b73a0b3afbe98e5dfe1807"
+    },
+    "http://localhost:5000": {}
+}

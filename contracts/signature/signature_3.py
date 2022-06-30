@@ -4,7 +4,7 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, devnet_funding, get_evaluator
+from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
@@ -28,12 +28,11 @@ async def main():
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
-    # client = Client("testnet")
-    client = Client(net=data['DEVNET_URL'], chain="testnet")
+    client = get_client()
 
-    sig3, sig3_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_3'], constructor_args=[stark_key])
+    sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_3'], constructor_args=[stark_key])
 
-    await devnet_funding(data, sig3_addr)
+    await fund_account(sig3_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
     

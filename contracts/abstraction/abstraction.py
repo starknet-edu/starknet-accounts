@@ -4,7 +4,7 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement, devnet_funding, get_evaluator
+from utils import deploy_account, print_n_wait, mission_statement, fund_account, get_evaluator
 from hashlib import sha256
 from ecdsa import SigningKey, VerifyingKey, SECP256k1
 from starknet_py.contract import Contract
@@ -48,9 +48,9 @@ async def main():
     # client = Client("testnet")
     client = Client(net=data['DEVNET_URL'], chain="testnet")
 
-    abstraction, abstraction_addr = await deploy_testnet(client=client, contract_path=data['ABSTRACTION'], constructor_args=calldata)
+    abstraction, abstraction_addr = await deploy_account(client=client, contract_path=data['ABSTRACTION'], constructor_args=calldata)
 
-    await devnet_funding(data, abstraction_addr)
+    await fund_account(abstraction_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
 

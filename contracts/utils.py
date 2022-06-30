@@ -1,21 +1,22 @@
 import os
 import json
+import argparse
 
 from pathlib import Path
 from starknet_py.contract import Contract
 from starknet_py.net import AccountClient, KeyPair
+from starknet_py.net.networks import TESTNET
 from starknet_py.net.client import Client, InvokeFunction
 from starknet_py.net.models import StarknetChainId
 from starkware.python.utils import from_bytes
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.cairo.common.hash_state import compute_hash_on_elements
 from starkware.starknet.core.os.transaction_hash.transaction_hash import TransactionHashPrefix, calculate_transaction_hash_common
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-TESTNET = from_bytes(b"SN_GOERLI")
+TESTNET_ID = from_bytes(b"SN_GOERLI")
 ACCOUNT_FILE = os.path.join(ROOT_DIR, 'account.json')
 PAYDAY = get_selector_from_name("payday")
 SUBMIT_TX = get_selector_from_name("submit")
@@ -29,7 +30,7 @@ def invoke_tx_hash(addr, calldata):
         entry_point_selector=exec_selector,
         calldata=calldata,
         max_fee=data['MAX_FEE'],
-        chain_id=TESTNET,
+        chain_id=TESTNET_ID,
         additional_data=[],
     )
 
@@ -63,7 +64,7 @@ async def print_n_wait(client: Client, invocation: InvokeFunction):
     
     print("\u001b[0m")
 
-async def deploy_testnet(client, contract_path="", constructor_args=[], additional_data=None):
+async def deploy_account(client, contract_path="", constructor_args=[], additional_data=None):
     data = dict()
     CONTRACT_ADDRESS="{}".format(contract_path)
     if additional_data:
@@ -123,6 +124,7 @@ async def contract_cache_check(client, contract):
     return False, "", ""
 
 async def compile_deploy(client, contract="", args=[], salt=0):
+    print("CLIENT: ", client.net)
     hit, cached, cached_addr = await contract_cache_check(client, contract)
     if hit:
         return cached, cached_addr
@@ -139,26 +141,16 @@ async def compile_deploy(client, contract="", args=[], salt=0):
 
     return deployment_result.deployed_contract, res.transaction.contract_address
 
-async def devnet_funding(data, toAddr):
-    acc_client, acc_addr = devnet_account(data)
+async def fund_account(toAddr):
+    acc_client = get_account_client()
     gas = await Contract.from_address(data['DEVNET_ETH'], acc_client, True)
     await(
         await gas.functions['transfer'].invoke(toAddr, data['TRANSFER_AMOUNT'], max_fee=data['MAX_FEE'])
     ).wait_for_acceptance()
 
-async def get_evaluator(client, evaluator_name):
-    _, evaluator, evaluator_address = await contract_cache_check(client, evaluator_name)
+async def get_evaluator(client):
+    _, evaluator, evaluator_address = await contract_cache_check(client, data['EVALUATOR'])
     return evaluator, evaluator_address
-
-def devnet_account(data):
-    addr = data['DEVNET_ACCOUNT']['ADDRESS']
-    acc_client = AccountClient(
-        address=addr,
-        key_pair=KeyPair(data['DEVNET_ACCOUNT']['PRIVATE'], data['DEVNET_ACCOUNT']['PUBLIC']),
-        net=data['DEVNET_URL'],
-        chain=StarknetChainId.TESTNET)
-    
-    return acc_client, addr
 
 def contract_cache(contract, addr):
     acc_data = dict()
@@ -169,3 +161,39 @@ def contract_cache(contract, addr):
     with open(ACCOUNT_FILE, 'w') as outfile:
         acc_data[contract] = "0x{:02x}".format(addr)
         json.dump(acc_data, outfile, sort_keys=True, indent=4)
+
+def get_client():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testnet', action='store_true')
+    args = parser.parse_args()
+
+    if args.testnet:
+        return Client("testnet")
+    else:
+        return Client(net=data['DEVNET_URL'], chain="testnet")
+
+def get_account_client():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testnet', action='store_true')
+    args = parser.parse_args()
+
+    if args.testnet:
+        addr = data['TESTNET_ACCOUNT']['ADDRESS']
+        acc_client = AccountClient(
+            address=addr,
+            key_pair=KeyPair(data['TESTNET_ACCOUNT']['PRIVATE'], data['TESTNET_ACCOUNT']['PUBLIC']),
+            net="testnet",
+            chain=StarknetChainId.TESTNET)
+        
+        return acc_client, addr
+
+    else:
+        print("DEVNET: ", args.testnet)
+        addr = data['DEVNET_ACCOUNT']['ADDRESS']
+        acc_client = AccountClient(
+            address=addr,
+            key_pair=KeyPair(data['DEVNET_ACCOUNT']['PRIVATE'], data['DEVNET_ACCOUNT']['PUBLIC']),
+            net=data['DEVNET_URL'],
+            chain=StarknetChainId.TESTNET)
+        
+        return acc_client, addr

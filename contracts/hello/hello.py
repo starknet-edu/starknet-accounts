@@ -4,7 +4,7 @@ import json
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement, get_evaluator, devnet_funding
+from utils import deploy_account, print_n_wait, mission_statement, get_evaluator, fund_account, get_client
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 
@@ -20,17 +20,16 @@ async def main():
     #
     # MISSION 1
     #
-    # client = Client("testnet")
-    client = Client(net=data['DEVNET_URL'], chain="testnet")
+    client = get_client()
 
     #
     # MISSION 2
     #
-    hello, hello_addr = await deploy_testnet(client=client, contract_path=data['HELLO'])
+    hello, hello_addr = await deploy_account(client=client, contract_path=data['HELLO'])
 
-    await devnet_funding(data, hello_addr)
+    await fund_account(hello_addr)
 
-    evaluator, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
+    evaluator, evaluator_address = await get_evaluator(client)
     (random, ) = await evaluator.functions["get_random"].call()
 
     prepared = hello.functions["__execute__"].prepare(

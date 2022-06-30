@@ -7,16 +7,13 @@
 import json
 import asyncio
 
-from utils import compile_deploy, devnet_account
-from starknet_py.net.networks import TESTNET, MAINNET
-
-max_fee=2500000000000000
+from utils import compile_deploy, get_account_client
 
 with open("hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    acc_client, acc_addr = devnet_account(data)
+    acc_client, acc_addr = get_account_client()
 
     # Deploy 
     registry, reg_addr = await compile_deploy(

@@ -5,7 +5,7 @@ import json
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement, get_evaluator, devnet_funding
+from utils import deploy_account, print_n_wait, mission_statement, get_evaluator, fund_account, get_client
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import sign
@@ -36,12 +36,11 @@ async def main():
     #
     # MISSION 2
     #
-    # client = Client("testnet")
-    client = Client(net=data['DEVNET_URL'], chain="testnet")
+    client = get_client()
 
-    sig1, sig1_addr = await deploy_testnet(client, data['SIGNATURE_1'])
+    sig1, sig1_addr = await deploy_account(client, data['SIGNATURE_1'])
 
-    await devnet_funding(data, sig1_addr)
+    await fund_account(sig1_addr)
 
     _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
     
