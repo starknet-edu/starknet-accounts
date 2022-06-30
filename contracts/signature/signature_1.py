@@ -5,17 +5,11 @@ import json
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement, transfer_gas
-from starknet_py.contract import Contract
+from utils import deploy_testnet, print_n_wait, mission_statement, get_evaluator, devnet_funding
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.crypto.signature.signature import private_to_stark_key, sign
+from starkware.crypto.signature.signature import sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
-
-# VALIDATOR_ADDRESS = int(os.getenv("VALIDATOR_ADDRESS"), 16)
-# WALLET_ADDRESS = int(os.getenv("WALLET_ADDRESS"), 16)
-devnet="http://localhost:5000"
-max_fee=2500000000000000
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
@@ -43,30 +37,30 @@ async def main():
     # MISSION 2
     #
     # client = Client("testnet")
-    client = Client(net=devnet, chain="testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
 
-    account_address = await deploy_testnet(client, data['SIGNATURE_1'])
-    contract = await Contract.from_address(account_address, client)
+    sig1, sig1_addr = await deploy_testnet(client, data['SIGNATURE_1'])
 
-    await transfer_gas(client, data['HELLO_ADDRESS'], account_address)
+    await devnet_funding(data, sig1_addr)
 
+    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
     #
     # MISSION 3
     #
     hash = pedersen_hash(INPUT_1, INPUT_2)
-    hash_final = pedersen_hash(hash, account_address)
+    hash_final = pedersen_hash(hash, sig1_addr)
     signature = sign(hash_final, data['PRIVATE_KEY'])
 
-    prepared = contract.functions["__execute__"].prepare(
-        contract_address=data['EVALUATOR_ADDRESS'],
+    prepared = sig1.functions["__execute__"].prepare(
+        contract_address=evaluator_address,
         selector=get_selector_from_name("validate_signature_1"),
         calldata_len=3,
-        calldata=[INPUT_1, INPUT_2, data['HELLO_ADDRESS']])
+        calldata=[INPUT_1, INPUT_2, data['DEVNET_ACCOUNT']['ADDRESS']])
     
     #
     # MISSION 4
     #
-    invocation = await prepared.invoke(signature=signature, max_fee=max_fee)
+    invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)
 

@@ -36,7 +36,6 @@ def invoke_tx_hash(addr, calldata):
 
 def mission_statement():
     print("\u001b[34;1m\u001b[4mYour mission:\u001b[0m\u001b[34m")
-    return
 
 async def print_n_wait(client: Client, invocation: InvokeFunction):
     print("\u001b[35mTransaction Hash: {}\u001b[0m\n".format(invocation.hash))
@@ -64,8 +63,6 @@ async def print_n_wait(client: Client, invocation: InvokeFunction):
         print("\u001b[31;1mTx Results: {}".format(res.status))
     
     print("\u001b[0m")
-
-    return
 
 async def deploy_testnet(client, contract_path="", constructor_args=[], additional_data=None):
     data = dict()
@@ -114,16 +111,6 @@ async def deploy_testnet(client, contract_path="", constructor_args=[], addition
 
     return deployment_result.deployed_contract, res.transaction.contract_address
 
-def contract_cache(contract, addr):
-    acc_data = dict()
-    if os.path.exists(acc_file) and os.path.getsize(acc_file) > 0:
-        with open(acc_file) as json_file:
-            acc_data = json.load(json_file)
-    
-    with open(acc_file, 'w') as outfile:
-        acc_data[contract] = "0x{:02x}".format(addr)
-        json.dump(acc_data, outfile, sort_keys=True, indent=4)
-
 async def contract_cache_check(client, contract):
     if os.path.exists(acc_file) and os.path.getsize(acc_file) > 0:
         with open(acc_file) as outfile:
@@ -135,16 +122,6 @@ async def contract_cache_check(client, contract):
             return True, cached, cached_addr
     
     return False, "", ""
-
-def devnet_account(data):
-    addr = data['DEVNET_ACCOUNT']['ADDRESS']
-    acc_client = AccountClient(
-        address=addr,
-        key_pair=KeyPair(data['DEVNET_ACCOUNT']['PRIVATE'], data['DEVNET_ACCOUNT']['PUBLIC']),
-        net=devnet,
-        chain=StarknetChainId.TESTNET)
-    
-    return acc_client, addr
 
 async def compile_deploy(client, contract="", args=[], salt=0):
     hit, cached, cached_addr = await contract_cache_check(client, contract)
@@ -169,3 +146,27 @@ async def devnet_funding(data, toAddr):
     await(
         await gas.functions['transfer'].invoke(toAddr, data['TRANSFER_AMOUNT'], max_fee=data['MAX_FEE'])
     ).wait_for_acceptance()
+
+async def get_evaluator(client, evaluator_name):
+    _, evaluator, evaluator_address = await contract_cache_check(client, evaluator_name)
+    return evaluator, evaluator_address
+
+def devnet_account(data):
+    addr = data['DEVNET_ACCOUNT']['ADDRESS']
+    acc_client = AccountClient(
+        address=addr,
+        key_pair=KeyPair(data['DEVNET_ACCOUNT']['PRIVATE'], data['DEVNET_ACCOUNT']['PUBLIC']),
+        net=devnet,
+        chain=StarknetChainId.TESTNET)
+    
+    return acc_client, addr
+
+def contract_cache(contract, addr):
+    acc_data = dict()
+    if os.path.exists(acc_file) and os.path.getsize(acc_file) > 0:
+        with open(acc_file) as json_file:
+            acc_data = json.load(json_file)
+    
+    with open(acc_file, 'w') as outfile:
+        acc_data[contract] = "0x{:02x}".format(addr)
+        json.dump(acc_data, outfile, sort_keys=True, indent=4)

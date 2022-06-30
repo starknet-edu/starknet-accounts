@@ -1,4 +1,3 @@
-import os
 import sys
 import json
 import random
@@ -6,14 +5,10 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, transfer_gas
-from starknet_py.contract import Contract
+from utils import deploy_testnet, invoke_tx_hash, print_n_wait, mission_statement, devnet_funding, get_evaluator
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
-
-devnet="http://localhost:5000"
-max_fee=2500000000000000
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
@@ -30,46 +25,47 @@ async def main():
     # MISSION 2
     #
     # client = Client("testnet")
-    client = Client(net=devnet, chain="testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
 
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
-    account_address = await deploy_testnet(client, data['SIGNATURE_2'], [stark_key])
-    contract = await Contract.from_address(account_address, client)
+    sig2, sig2_addr = await deploy_testnet(client=client, contract_path=data['SIGNATURE_2'], constructor_args=[stark_key])
+    
 
-    await transfer_gas(client, data['HELLO_ADDRESS'], account_address)
+    await devnet_funding(data, sig2_addr)
 
+    _, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
     #
     # MISSION 3
     #
     selector = get_selector_from_name("validate_signature_2")
-    calldata = [data['EVALUATOR_ADDRESS'], selector, 2, 1, data['HELLO_ADDRESS']]
+    calldata = [evaluator_address, selector, 2, 1, data['DEVNET_ACCOUNT']['ADDRESS']]
 
-    hash = invoke_tx_hash(account_address, calldata)
+    hash = invoke_tx_hash(sig2_addr, calldata)
     signature = sign(hash, private_key)
 
-    prepared1 = contract.functions["__execute__"].prepare(
-        contract_address=data['EVALUATOR_ADDRESS'],
+    prepared1 = sig2.functions["__execute__"].prepare(
+        contract_address=evaluator_address,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), data['HELLO_ADDRESS']])
+        calldata=[hash, random.randint(0, private_key), data['DEVNET_ACCOUNT']['ADDRESS']])
 
     #
     # MISSION 4
     #
-    invocation1 = await prepared1.invoke(signature=signature, max_fee=max_fee)
+    invocation1 = await prepared1.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation1)
 
     #
     # MISSION 5
     #
-    prepared2 = contract.functions["__execute__"].prepare(
-        contract_address=data['EVALUATOR_ADDRESS'],
+    prepared2 = sig2.functions["__execute__"].prepare(
+        contract_address=evaluator_address,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), data['HELLO_ADDRESS']])
-    invocation2 = await prepared2.invoke(signature=signature, max_fee=max_fee)
+        calldata=[hash, random.randint(0, private_key), data['DEVNET_ACCOUNT']['ADDRESS']])
+    invocation2 = await prepared2.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation2)
 

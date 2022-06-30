@@ -1,20 +1,12 @@
-import os
 import asyncio
 import sys
 import json
-import requests
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement, contract_cache_check, devnet_funding
-from starknet_py.contract import Contract
+from utils import deploy_testnet, print_n_wait, mission_statement, get_evaluator, devnet_funding
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.crypto.signature.signature import private_to_stark_key, sign
-from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
-
-devnet="http://localhost:5000"
-max_fee=2500000000000000
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
@@ -29,7 +21,7 @@ async def main():
     # MISSION 1
     #
     # client = Client("testnet")
-    client = Client(net=devnet, chain="testnet")
+    client = Client(net=data['DEVNET_URL'], chain="testnet")
 
     #
     # MISSION 2
@@ -38,15 +30,15 @@ async def main():
 
     await devnet_funding(data, hello_addr)
 
-    hit, evaluator, evaluator_address = await contract_cache_check(client, data['EVALUATOR'])
+    evaluator, evaluator_address = await get_evaluator(client, data['EVALUATOR'])
     (random, ) = await evaluator.functions["get_random"].call()
 
     prepared = hello.functions["__execute__"].prepare(
         contract_address=evaluator_address,
         selector=get_selector_from_name("validate_hello"),
         calldata_len=2,
-        calldata=[random, hello_addr]) # MISSION 3
-    invocation = await prepared.invoke(max_fee=max_fee)
+        calldata=[random, data['DEVNET_ACCOUNT']['ADDRESS']]) # MISSION 3
+    invocation = await prepared.invoke(max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)
 
