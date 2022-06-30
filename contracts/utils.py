@@ -169,5 +169,3 @@ async def devnet_funding(data, toAddr):
     await(
         await gas.functions['transfer'].invoke(toAddr, data['TRANSFER_AMOUNT'], max_fee=data['MAX_FEE'])
     ).wait_for_acceptance()
-
-    return
