@@ -6,7 +6,7 @@ import requests
 
 sys.path.append('./')
 
-from utils import deploy_testnet, print_n_wait, mission_statement
+from utils import deploy_testnet, print_n_wait, mission_statement, contract_cache_check, devnet_funding
 from starknet_py.contract import Contract
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
@@ -18,19 +18,6 @@ max_fee=2500000000000000
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
-
-async def deploy_hello(client):
-    compiled = "{}_compiled.json".format(data['HELLO'])
-    os.system("starknet-compile --account_contract {}.cairo --output {}".format(data['HELLO'], compiled))
-
-    os.system("starknet deploy --contract {} --gateway_url http://localhost:5000 --salt 0x0".format(compiled))
-    os.system("rm {}".format(compiled))
-
-    # fund the hello contract
-    payload = json.dumps(data['DEVNET_FUNDING'])
-    response = requests.request("POST", devnet+"/gateway/add_transaction", data=payload)
-
-    return await Contract.from_address(data['HELLO_ADDRESS'], client, True)
 
 async def main():
     mission_statement()
@@ -47,16 +34,18 @@ async def main():
     #
     # MISSION 2
     #
-    hello = await deploy_hello(client)
+    hello, hello_addr = await deploy_testnet(client=client, contract_path=data['HELLO'])
 
-    evaluator = await Contract.from_address(data['EVALUATOR_ADDRESS'], client, True)
+    await devnet_funding(data, hello_addr)
+
+    hit, evaluator, evaluator_address = await contract_cache_check(client, data['EVALUATOR'])
     (random, ) = await evaluator.functions["get_random"].call()
 
     prepared = hello.functions["__execute__"].prepare(
-        contract_address=data['EVALUATOR_ADDRESS'],
+        contract_address=evaluator_address,
         selector=get_selector_from_name("validate_hello"),
         calldata_len=2,
-        calldata=[random, hello.address]) # MISSION 3
+        calldata=[random, hello_addr]) # MISSION 3
     invocation = await prepared.invoke(max_fee=max_fee)
 
     await print_n_wait(client, invocation)
