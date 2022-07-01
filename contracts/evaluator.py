@@ -7,7 +7,7 @@
 import json
 import asyncio
 
-from utils import compile_deploy, get_account_client, get_client
+from utils import compile_deploy, get_account_client
 
 with open("hints.json", "r") as f:
   data = json.load(f)
@@ -15,25 +15,24 @@ with open("hints.json", "r") as f:
 async def main():
     print("\u001b[35mEvaluator Deployment only run on Devnet:")
     acc_client, acc_addr = get_account_client()
-    client = get_client()
 
     # Deploy 
     registry, reg_addr = await compile_deploy(
-        client,
+        acc_client,
         data['PLAYER_REGISTRY'],
         [acc_addr],
     )
     print("\tRegistry - 0x{:x}".format(reg_addr))
 
     erc20, erc20_addr = await compile_deploy(
-        client,
+        acc_client,
         data['ERC20'],
         [data['ERC20_NAME'], data['ERC20_SYMBOL'], data['ERC20_DECIMAL'], acc_addr],
     )
     print("\tERC20 - 0x{:x}".format(erc20_addr))
 
     _, evaluator_addr = await compile_deploy(
-        client,
+        acc_client,
         data['EVALUATOR'],
         [data['PRIVATE_KEY'], data['PUBLIC_KEY'], data['INPUT_1'], data['INPUT_2'], erc20_addr, reg_addr, acc_addr],
     )
