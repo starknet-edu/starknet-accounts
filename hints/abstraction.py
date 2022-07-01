@@ -47,6 +47,7 @@ async def abstraction(starknet: Starknet) -> StarknetContract:
 
     return await starknet.deploy(
         source=ABSTRACTION_FILE,
+        cairo_path=["../contracts"],
         constructor_calldata=[*calldata_x, *calldata_y],
     )
 

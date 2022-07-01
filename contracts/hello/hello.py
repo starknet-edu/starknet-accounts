@@ -27,8 +27,11 @@ async def main():
     #
     hello, hello_addr = await deploy_account(client=client, contract_path=data['HELLO'])
 
-    await fund_account(hello_addr)
-
+    reward_account = await fund_account(hello_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
+        
     evaluator, evaluator_address = await get_evaluator(client)
     (random, ) = await evaluator.functions["get_random"].call()
 
@@ -36,7 +39,7 @@ async def main():
         contract_address=evaluator_address,
         selector=get_selector_from_name("validate_hello"),
         calldata_len=2,
-        calldata=[random, data['DEVNET_ACCOUNT']['ADDRESS']]) # MISSION 3
+        calldata=[random, reward_account]) # MISSION 3
     invocation = await prepared.invoke(max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)

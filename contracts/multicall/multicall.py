@@ -30,7 +30,10 @@ async def main():
 
     multicall, multicall_addr = await deploy_account(client=client, contract_path=data['MULTICALL'], constructor_args=[stark_key])
     
-    await fund_account(multicall_addr)
+    reward_account = await fund_account(multicall_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
 
     _, evaluator_address = await get_evaluator(client)
     
@@ -60,7 +63,7 @@ async def main():
     ]
     
     (nonce, ) = await multicall.functions["get_nonce"].call()
-    inner_calldata = [data['DEVNET_ACCOUNT']['ADDRESS'], data['DEVNET_ACCOUNT']['ADDRESS'], data['DEVNET_ACCOUNT']['ADDRESS']]
+    inner_calldata = [reward_account, reward_account, reward_account]
     calldata = [
         nonce, len(call_array),
         evaluator_address, selector, 0, 1,

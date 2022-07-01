@@ -32,8 +32,11 @@ async def main():
 
     sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_3'], constructor_args=[stark_key])
 
-    await fund_account(sig3_addr)
-
+    reward_account = await fund_account(sig3_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
+      
     _, evaluator_address = await get_evaluator(client)
     
     #
@@ -41,7 +44,7 @@ async def main():
     #
     (nonce, ) = await sig3.functions["get_nonce"].call()
     selector = get_selector_from_name("validate_signature_3")
-    calldata = [evaluator_address, selector, 2, nonce, data['DEVNET_ACCOUNT']['ADDRESS']]
+    calldata = [evaluator_address, selector, 2, nonce, reward_account]
 
     hash = invoke_tx_hash(sig3_addr, calldata)
     hash_final = pedersen_hash(hash, nonce)
@@ -51,7 +54,7 @@ async def main():
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=2,
-        calldata=[nonce, data['DEVNET_ACCOUNT']['ADDRESS']])
+        calldata=[nonce, reward_account])
     
     #
     # MISSION 5

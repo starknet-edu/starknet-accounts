@@ -4,7 +4,7 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, print_n_wait, mission_statement, fund_account, get_evaluator
+from utils import deploy_account, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
 from hashlib import sha256
 from ecdsa import SigningKey, SECP256k1
 from starknet_py.net.client import Client
@@ -44,12 +44,14 @@ async def main():
         calldata[0]["y"]["d{}".format(i)] = PUB_Y & MASK
         PUB_Y >>= SHIFT
 
-    # client = Client("testnet")
-    client = Client(net=data['DEVNET_URL'], chain="testnet")
+    client = get_client()
 
     abstraction, abstraction_addr = await deploy_account(client=client, contract_path=data['ABSTRACTION'], constructor_args=calldata)
 
-    await fund_account(abstraction_addr)
+    reward_account = await fund_account(abstraction_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
 
     _, evaluator_address = await get_evaluator(client)
 
@@ -83,7 +85,7 @@ async def main():
         bigS.append(sig_s & MASK)
         sig_s >>= SHIFT
 
-    calldata = [*bigHash, *bigR, *bigS, data['DEVNET_ACCOUNT']['ADDRESS']]
+    calldata = [*bigHash, *bigR, *bigS, reward_account]
 
     #
     # MISSION 5

@@ -4,7 +4,7 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator
+from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
 from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
@@ -32,23 +32,25 @@ async def main():
     #
     # MISSION 6
     #
-    # client = Client("testnet")
-    client = Client(net=data['DEVNET_URL'], chain="testnet")
+    client = get_client()
 
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
     sig1, sig1_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
-    await fund_account(sig1_addr)
+    reward_account = await fund_account(sig1_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
 
     private_key_2 = private_key + 1
     stark_key_2 = private_to_stark_key(private_key_2)
     sig2, sig2_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_2], additional_data=2)
-    await fund_account(sig2_addr)
+    reward_account = await fund_account(sig2_addr)
     
     private_key_3 = private_key + 2
     stark_key_3 = private_to_stark_key(private_key_3)
     sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
-    await fund_account(sig3_addr)
+    reward_account = await fund_account(sig3_addr)
 
     _, evaluator_address = await get_evaluator(client)
 
@@ -64,7 +66,7 @@ async def main():
     submit_selector = get_selector_from_name("submit_tx")
 
     (nonce_1, ) = await sig1.functions["get_nonce"].call()
-    inner_calldata=[evaluator_address, validator_selector, 2, 1, data['DEVNET_ACCOUNT']['ADDRESS']]
+    inner_calldata=[evaluator_address, validator_selector, 2, 1, reward_account]
     outer_calldata=[multi_addr, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
 
     hash = invoke_tx_hash(sig1_addr, outer_calldata)

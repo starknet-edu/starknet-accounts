@@ -40,8 +40,11 @@ async def main():
 
     sig1, sig1_addr = await deploy_account(client, data['SIGNATURE_1'])
 
-    await fund_account(sig1_addr)
-
+    reward_account = await fund_account(sig1_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
+      
     _, evaluator_address = await get_evaluator(client)
     
     #
@@ -55,7 +58,7 @@ async def main():
         contract_address=evaluator_address,
         selector=get_selector_from_name("validate_signature_1"),
         calldata_len=3,
-        calldata=[INPUT_1, INPUT_2, data['DEVNET_ACCOUNT']['ADDRESS']])
+        calldata=[INPUT_1, INPUT_2, reward_account])
     
     #
     # MISSION 4

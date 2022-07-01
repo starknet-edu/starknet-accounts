@@ -4,9 +4,9 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import call_contract, get_tx_info
 from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.alloc import alloc
-from cairo_examples.secp.bigint import BigInt3
-from cairo_examples.secp.secp import verify_ecdsa
-from cairo_examples.secp.secp_ec import EcPoint
+from tutorial.secp.bigint import BigInt3
+from tutorial.secp.secp import verify_ecdsa
+from tutorial.secp.secp_ec import EcPoint
 
 ####################
 # STORAGE VARIABLES

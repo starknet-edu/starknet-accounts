@@ -31,15 +31,18 @@ async def main():
 
     sig2, sig2_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_2'], constructor_args=[stark_key])
     
-    await fund_account(sig2_addr)
-
+    reward_account = await fund_account(sig2_addr)
+    if reward_account == "":
+      print("Account must have ETH to cover transaction fees")
+      return
+      
     _, evaluator_address = await get_evaluator(client)
     
     #
     # MISSION 3
     #
     selector = get_selector_from_name("validate_signature_2")
-    calldata = [evaluator_address, selector, 2, 1, data['DEVNET_ACCOUNT']['ADDRESS']]
+    calldata = [evaluator_address, selector, 2, 1, reward_account]
 
     hash = invoke_tx_hash(sig2_addr, calldata)
     signature = sign(hash, private_key)
@@ -48,7 +51,7 @@ async def main():
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), data['DEVNET_ACCOUNT']['ADDRESS']])
+        calldata=[hash, random.randint(0, private_key), reward_account])
 
     #
     # MISSION 4
@@ -64,7 +67,7 @@ async def main():
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=3,
-        calldata=[hash, random.randint(0, private_key), data['DEVNET_ACCOUNT']['ADDRESS']])
+        calldata=[hash, random.randint(0, private_key), reward_account])
     invocation2 = await prepared2.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation2)
