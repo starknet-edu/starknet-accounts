@@ -4,9 +4,8 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
-from starknet_py.contract import Contract
-from starknet_py.net.client import Client
+from console import blue_strong, blue, red
+from utils import deploy_account, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
@@ -15,12 +14,12 @@ with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) implement account contract interface 'get_nonce'")
-    print("\t 2) implement account contract interface 'get_signer'")
-    print("\t 3) deploy account contract")
-    print("\t 4) sign calldata")
-    print("\t 5) invoke check\u001b[0m\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) implement account contract interface 'get_nonce'")
+    blue.print("\t 2) implement account contract interface 'get_signer'")
+    blue.print("\t 3) deploy account contract")
+    blue.print("\t 4) sign calldata")
+    blue.print("\t 5) invoke check\n")
 
     #
     # MISSION 3
@@ -34,7 +33,7 @@ async def main():
 
     reward_account = await fund_account(sig3_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
       
     _, evaluator_address = await get_evaluator(client)

@@ -5,9 +5,9 @@ import requests
 import argparse
 
 from pathlib import Path
+from console import green, green_bold, cyan, red, yellow
 from starknet_py.contract import Contract
 from starknet_py.net import AccountClient, KeyPair
-from starknet_py.net.networks import TESTNET
 from starkware.crypto.signature.signature import sign
 from starknet_py.net.client import Client, InvokeFunction
 from starknet_py.net.models import StarknetChainId
@@ -38,48 +38,43 @@ def invoke_tx_hash(addr, calldata):
         additional_data=[],
     )
 
-def mission_statement():
-    print("\u001b[34;1m\u001b[4mYour mission:\u001b[0m\u001b[34m")
-
 async def print_n_wait(client: Client, invocation: InvokeFunction):
-    print("\u001b[35mTransaction Hash: {}\u001b[0m\n".format(invocation.hash))
-
     try:
         await invocation.wait_for_acceptance()
     except Exception as e:
-        print("\u001b[31mInvocation error:")
-        print(e)
-        print("\u001b[0m\n")
+        red.print(f"Transaction Hash: {invocation.hash}")
+        red.print("Invocation error:")
+        red.print(f"{e}")
+        red.print("")
 
     res = await client.get_transaction_receipt(invocation.hash)
 
     if "ACCEPT" in str(res.status):
-        print("\u001b[32;1mTx Results: {}\u001b[0m".format(res.status))
+        green.print(f"Transaction Hash: {invocation.hash}")
+        green.print(f"Tx Results: {res.status}")
         for ev in res.events:
             if ev.keys[0] == SUBMIT_TX and len(res.events) == 1:
                 return ev.data
             if ev.keys[0] == PAYDAY:
-                print("\u001b[32;1mPayday Results: PAYDAY!!!\u001b[0m\n")
+                green_bold.print(f"Payday Results: PAYDAY!!!\n")
                 return ev.data
-        print("\u001b[33;1mPayday Results: no payday\n")
+        yellow.print("Payday Results: no payday\n")
 
     else:
-        print("\u001b[31;1mTx Results: {}".format(res.status))
+        red.print(f"Tx Results: {res.status}")
     
-    print("\u001b[0m")
-
 async def deploy_account(client, contract_path="", constructor_args=[], additional_data=None):
     cache_data = dict()
     CONTRACT_ADDRESS="{}".format(contract_path)
     if additional_data:
         CONTRACT_ADDRESS="{}_{}".format(CONTRACT_ADDRESS, additional_data)
     if os.getenv('ACCOUNT_CACHE') == "false":
-        print("\u001b[35mDisabled local account cache\u001b[0m\n")
+        yellow.print("Disabled local account cache\n")
     else:
         with open(ACCOUNT_FILE) as json_file:
             cache_data = json.load(json_file)
             if CONTRACT_ADDRESS in cache_data[client.net]:
-                print("\u001b[35mFound local contract: {}\u001b[0m\n".format(cache_data[client.net][CONTRACT_ADDRESS]))
+                cyan.print(f"Found local contract: {cache_data[client.net][CONTRACT_ADDRESS]}\n")
                 
                 cached = await Contract.from_address(int(cache_data[client.net][CONTRACT_ADDRESS], 16), client, True)
                 return cached, int(cache_data[client.net][CONTRACT_ADDRESS], 16)
@@ -98,9 +93,9 @@ async def deploy_account(client, contract_path="", constructor_args=[], addition
         raise ValueError("Failed to deploy contract")
         return "", ""
 
-    print("\u001b[35mDeployment Initialized: ", deployment_result.hash)
-    print("\tWaiting for successful deployment...")
-    print("\tPatience is bitter, but its fruit is sweet...")
+    cyan.print("Deployment Initialized: ", deployment_result.hash)
+    cyan.print("\tWaiting for successful deployment...")
+    cyan.print("\tPatience is bitter, but its fruit is sweet...")
 
     await client.wait_for_tx(deployment_result.hash)
     res = await client.get_transaction(deployment_result.hash)
@@ -109,7 +104,7 @@ async def deploy_account(client, contract_path="", constructor_args=[], addition
         cache_data[client.net][CONTRACT_ADDRESS] = "0x{:02x}".format(res.transaction.contract_address)
         with open(ACCOUNT_FILE, 'w') as outfile:
             json.dump(cache_data, outfile, sort_keys=True, indent=4)
-        print("\tSuccess - cached in accounts.json")
+        cyan.print("\tSuccess - cached in accounts.json")
 
     print("\u001b[0m\n")
 

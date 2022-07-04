@@ -4,9 +4,8 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
-from starknet_py.contract import Contract
-from starknet_py.net.client import Client
+from console import blue_strong, blue, red
+from utils import deploy_account, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 
@@ -14,11 +13,11 @@ with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) implement account execution similar to OpenZeppelin w/ AccountCallArray")
-    print("\t 2) deploy account contract")
-    print("\t 3) format and sign invocations and calldata")
-    print("\t 4) invoke multiple contracts in the same block\u001b[0m\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) implement account execution similar to OpenZeppelin w/ AccountCallArray")
+    blue.print("\t 2) deploy account contract")
+    blue.print("\t 3) format and sign invocations and calldata")
+    blue.print("\t 4) invoke multiple contracts in the same block\n")
 
     #
     # MISSION 2
@@ -32,7 +31,7 @@ async def main():
     
     reward_account = await fund_account(multicall_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
 
     _, evaluator_address = await get_evaluator(client)

@@ -4,8 +4,8 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, invoke_tx_hash, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
-from starknet_py.net.client import Client
+from console import blue_strong, blue, red
+from utils import deploy_account, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 
@@ -13,21 +13,21 @@ with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) implement a 2/3 multisig contract")
-    print("\t 2) implement the following interfaces expected by the validator:")
-    print("\t\t - get_confirmations")
-    print("\t\t - get_owner_confirmed")
-    print("\t\t - get_num_owners")
-    print("\t\t - get_owners")
-    print("\t 3) implement function for contract owner to submit a tx for the owners to sign")
-    print("\t 4) implement function for contract owner confirm a submitted tx")
-    print("\t 5) implement function to execute a transaction that has ben confirmed by at least two unique owners")
-    print("\t 6) deploy the signers for the multisig")
-    print("\t 7) deploy the multisig")
-    print("\t 8) submit a transaction to the multisig")
-    print("\t 9) confirm the tx")
-    print("\t 10) execute the tx\u001b[0m\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) implement a 2/3 multisig contract")
+    blue.print("\t 2) implement the following interfaces expected by the validator:")
+    blue.print("\t\t - get_confirmations")
+    blue.print("\t\t - get_owner_confirmed")
+    blue.print("\t\t - get_num_owners")
+    blue.print("\t\t - get_owners")
+    blue.print("\t 3) implement function for contract owner to submit a tx for the owners to sign")
+    blue.print("\t 4) implement function for contract owner confirm a submitted tx")
+    blue.print("\t 5) implement function to execute a transaction that has ben confirmed by at least two unique owners")
+    blue.print("\t 6) deploy the signers for the multisig")
+    blue.print("\t 7) deploy the multisig")
+    blue.print("\t 8) submit a transaction to the multisig")
+    blue.print("\t 9) confirm the tx")
+    blue.print("\t 10) execute the tx\n")
 
     #
     # MISSION 6
@@ -39,7 +39,7 @@ async def main():
     sig1, sig1_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
     reward_account = await fund_account(sig1_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
 
     private_key_2 = private_key + 1

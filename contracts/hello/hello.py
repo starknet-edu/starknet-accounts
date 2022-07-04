@@ -4,18 +4,18 @@ import json
 
 sys.path.append('./')
 
-from utils import deploy_account, print_n_wait, mission_statement, get_evaluator, fund_account, get_client
-from starknet_py.net.client import Client
+from console import blue_strong, blue, red
+from utils import deploy_account, print_n_wait, get_evaluator, fund_account, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 
 with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) deploy an account contract with an '__execute__' entrypoint")
-    print("\t 2) fetch the 'random' storage_variable from the validator contract")
-    print("\t 3) pass 'random' via calldata to your account contract\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) deploy an account contract with an '__execute__' entrypoint")
+    blue.print("\t 2) fetch the 'random' storage_variable from the validator contract")
+    blue.print("\t 3) pass 'random' via calldata to your account contract\n")
 
     #
     # MISSION 1
@@ -29,7 +29,7 @@ async def main():
 
     reward_account = await fund_account(hello_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
         
     evaluator, evaluator_address = await get_evaluator(client)

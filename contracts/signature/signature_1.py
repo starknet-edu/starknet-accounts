@@ -5,8 +5,8 @@ import json
 
 sys.path.append('./')
 
-from utils import deploy_account, print_n_wait, mission_statement, get_evaluator, fund_account, get_client
-from starknet_py.net.client import Client
+from console import blue_strong, blue, red
+from utils import deploy_account, print_n_wait, get_evaluator, fund_account, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
@@ -15,23 +15,19 @@ with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) find the first two EIP numbers discussing account abstraction")
-    print("\t 2) deploy account contract with an '__execute__' entrypoint")
-    print("\t 3) use the private key to sign the values using the Stark curve")
-    print("\t 4) invoke the validator check with the signature in the tx_info field\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) find the first two EIP numbers discussing account abstraction")
+    blue.print("\t 2) deploy account contract with an '__execute__' entrypoint")
+    blue.print("\t 3) use the private key to sign the values using the Stark curve")
+    blue.print("\t 4) invoke the validator check with the signature in the tx_info field\n")
 
     #
     # MISSION 1
     #
     INPUT_1 = 2938
     INPUT_2 = 4337
-    print(
-        "First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{}"
-        .format(INPUT_1))
-    print(
-        "Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{}\u001b[0m\n"
-        .format(INPUT_2))
+    blue.print(f"First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_1}")
+    blue.print(f"Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_2}\n")
 
     #
     # MISSION 2
@@ -42,7 +38,7 @@ async def main():
 
     reward_account = await fund_account(sig1_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
       
     _, evaluator_address = await get_evaluator(client)

@@ -4,10 +4,10 @@ import asyncio
 
 sys.path.append('./')
 
-from utils import deploy_account, print_n_wait, mission_statement, fund_account, get_evaluator, get_client
+from console import blue_strong, blue, red
+from utils import deploy_account, print_n_wait, fund_account, get_evaluator, get_client
 from hashlib import sha256
 from ecdsa import SigningKey, SECP256k1
-from starknet_py.net.client import Client
 from starkware.starknet.public.abi import get_selector_from_name
 
 SHIFT = 86
@@ -18,12 +18,12 @@ with open("./hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
-    mission_statement()
-    print("\t 1) implement a contract to verify signatures using secp256k1")
-    print("\t 2) deploy account contract with formatted public key")
-    print("\t 3) obtain sha256 hash of data")
-    print("\t 4) format hash and signature with appropriate bitwidths")
-    print("\t 5) invoke the verifier function\u001b[0m\n")
+    blue_strong.print("Your mission:")
+    blue.print("\t 1) implement a contract to verify signatures using secp256k1")
+    blue.print("\t 2) deploy account contract with formatted public key")
+    blue.print("\t 3) obtain sha256 hash of data")
+    blue.print("\t 4) format hash and signature with appropriate bitwidths")
+    blue.print("\t 5) invoke the verifier function\n")
 
     ABSTRACT_PRIV = data['ABSTRACT_PRIV']
     PUB_X = data['ABSTRACT_PUB_X']
@@ -50,7 +50,7 @@ async def main():
 
     reward_account = await fund_account(abstraction_addr)
     if reward_account == "":
-      print("Account must have ETH to cover transaction fees")
+      red.print("Account must have ETH to cover transaction fees")
       return
 
     _, evaluator_address = await get_evaluator(client)
