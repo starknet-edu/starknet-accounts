@@ -228,7 +228,9 @@ python3 signature/signature_3.py
 
 Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do!
 
-A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block
+A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block.
+
+Popular wallet providers like Argent use this design to implement [account contracts](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) on StarkNet to accomodate a multicall or a single call with one scheme.
 
 There are many implementations of multicall that allow the caller flexibility in how they distribute and batch their transactions.
 
