@@ -178,6 +178,10 @@ async def fund_account(toAddr):
 
 async def get_evaluator(client):
     _, evaluator, evaluator_address = await contract_cache_check(client, data['EVALUATOR'])
+    if evaluator_address == "": 
+        red.print("must have a deployed evaluator to test against:")
+        red.print("'python3 evaluator.py'")
+        return "", ""
     return evaluator, evaluator_address
 
 def contract_cache(env, contract, addr):

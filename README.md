@@ -63,7 +63,7 @@ Transactions take some time to complete on `testnet` so you should develop and d
 ***1) init devnet***
 
 ```bash
-starknet-devnet --port 5000 --seed 0
+starknet-devnet --port 5000 --seed 0 --gas-price 250
 ```
 
 ***2) deploy evaluator***
@@ -82,7 +82,7 @@ python3 evaluator.py
 python3 hello/hello.py
 ```
 
-The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. If you would like to disable this cache run:
+The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contrats will need to be deleted everytime devnet is restart. If you would like to disable this cache run:
 
 ```bash
 export ACCOUNT_CACHE=false
@@ -140,7 +140,7 @@ python3 hello/hello.py --testnet
 
 ## Hints
 
-If you need hints on tutorial solutions you can find them in repository branches named `hint/<exercise>`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract for that exercise.
+If you need hints on tutorial solutions you can find them in repository branch named `hint/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract for that exercise.
 
 To run the hints:
 
