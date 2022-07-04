@@ -14,7 +14,7 @@
 |[abstraction](contracts/abstraction/abstraction.cairo)|unique account architecture|2000|
 </div>
 
-# Tutorial Setup
+# Setup
 
 This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py):
 
@@ -47,18 +47,18 @@ pip3 install --upgrade pytest pytest-asyncio
 
 ## Overview
 
-This tutorial consistes of various StarkNet account conracts(listed above) and `starknet_py` helper scripts for compilation, deployment, and testing.
+This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
 
 ***The goal of this tutorial is to pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
 
-To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions on how to complete each exercise. The exercises will get more difficult and will require you to:
+To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
 
 - manipulate the python files
 - write the relevant Cairo code.
 
-These tasks will be annotated with the commented `# ACTION ITEM <NUM>`
+These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
 
-Transactions take some time to complete on `testnet` so you should develop and debug locally first. Let's try it out with the `contracts/hello/hello.cairo` exercise. There are no `action items` that need to be completed for this exercise and we can simple test that it works.
+Transactions take time to complete on `testnet` so you should develop and debug locally first. Let's try it out with the `contracts/hello/hello.cairo` exercise. There are no `action items` that need to be completed for this exercise and we can simply test that it works.
 
 ***1) init devnet***
 
@@ -82,13 +82,15 @@ python3 evaluator.py
 python3 hello/hello.py
 ```
 
-The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contrats will need to be deleted everytime devnet is restart. If you would like to disable this cache run:
+The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contracts `MUST BE DELETED` everytime devnet is restarted. If you would like to disable this constract cache run:
 
 ```bash
 export ACCOUNT_CACHE=false
 ```
 
-When deploying/testing on devnet the starknet_py scripts will use the `TESTNET_ACCOUNT` in the `hints.json` file for both fee transfer and ERC20 points rewards. Since there were no `action items` for you to complete you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
+When deploying/testing on devnet the starknet_py scripts will use the `TESTNET_ACCOUNT` field in the `hints.json` file for both fee transfer and ERC20 points rewards.
+
+Since there were no `action items` for you to complete you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
 
 ```bash
 curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
@@ -105,7 +107,9 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 
 When deploying to testnet fill out the relevant details in the `hints.json` file under `TESNET-ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
-<img align="center" src="./misc/argent.png" style="width: 350px">
+<div align="center">
+    <img src="./misc/argent.png" style="width: 350px">
+</div>
 
 ***ADDRESS***
 
@@ -127,6 +131,11 @@ When deploying to testnet fill out the relevant details in the `hints.json` file
 - Drop down the `get_signer` selector
 - Select `Decimal` query
 - Copy the public key from this screen and paste it in `hints.json` `TESNET_ACCOUNT` -> `PUBLIC`
+
+***Example `hints.json`***
+<div align="center">
+    <img src="./misc/hints.png" style="width: 350px">
+</div>
 
 ## Fees
 
