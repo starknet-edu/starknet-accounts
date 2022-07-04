@@ -103,12 +103,32 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 
 When deploying to devnet fill out the relevant details in the `hints.json` file under `TESNET-ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
-[Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example:
+## [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
+
+<img align="center" src="./misc/argent.png" style="width: 350px">
 
 ***ADDRESS***
 
-- 'PRIVATE'
-- 'PUBLIC'
+- From the example wallet above you can copy the address(`0x0742B5662...6476f8f`)
+- Paste the felt representation in the `hints.json` `TESTNET_ACCOUNT` -> `ADDRESS`
+- To get the felt represenation you can paste the address in this [conversion tool](https://util.turbofish.co).
+
+***PRIVATE***
+
+- Select the three vertical dots to display the wallet options
+- Select `Export private key`
+- Copy the private key from this screen and paste it in `hints.json` `TESTNET_ACCOUNT` -> `PRIVATE`.
+
+***PUBLIC***
+
+- Select the three vertical dots to display the wallet options
+- Select `View on Voyager`
+- From the Voyager Block Explorer select the `READ Contract` -> `IMPLEMENTATION` tab
+- Drop down the `get_signer` selector
+- Select `Decimal` query
+- Copy the public key from this screen and paste it in `hints.json` `TESNET_ACCOUNT` -> `PUBLIC`
+
+## Fees
 
 Accounts on StarkNet must pay [fese](https://docs.starknet.io/docs/Fees/fee-mechanism) to cover the L1 footprint of their transaction and therefor the account details you enter must have Goerli ETH(~0.5 ETH) and can be funded either through the [starkgate bridge](https://goerli.starkgate.starknet.io) or [StarkNet Faucet](https://faucet.goerli.starknet.io).
 
@@ -144,7 +164,7 @@ One caveat for account contract deployments is they must have a canonical entryp
 Lets deploy and test the simplest account contract we can:
 
 ```bash
-cd contracts/hello
+cd contracts
 python3 hello/hello.py
 ```
 

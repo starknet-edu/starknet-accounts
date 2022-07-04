@@ -29,11 +29,11 @@ async def main():
     blue.print("\t 9) confirm the tx")
     blue.print("\t 10) execute the tx\n")
 
-    #
-    # MISSION 6
-    #
     client = get_client()
 
+    #
+    # Deploy first signer
+    #
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
     sig1, sig1_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key], additional_data=1)
@@ -42,11 +42,17 @@ async def main():
       red.print("Account must have ETH to cover transaction fees")
       return
 
+    #
+    # Deploy second signer
+    #
     private_key_2 = private_key + 1
     stark_key_2 = private_to_stark_key(private_key_2)
     sig2, sig2_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_2], additional_data=2)
     reward_account = await fund_account(sig2_addr)
     
+    #
+    # Deploy thrid signer
+    #
     private_key_3 = private_key + 2
     stark_key_3 = private_to_stark_key(private_key_3)
     sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_BASIC'], constructor_args=[stark_key_3], additional_data=3)
@@ -55,16 +61,17 @@ async def main():
     _, evaluator_address = await get_evaluator(client)
 
     #
-    # MISSION 7
+    # Deploy multisig constract
     #
     _, multi_addr = await deploy_account(client=client, contract_path=data['MULTISIG'], constructor_args=[[sig1_addr, sig2_addr, sig3_addr]])
     
-    #
-    # MISSION 8
-    #
+
     validator_selector = get_selector_from_name("validate_multisig")
     submit_selector = get_selector_from_name("submit_tx")
 
+    #
+    # ACTION ITEM 3: submit a transaction to the multisig
+    #
     (nonce_1, ) = await sig1.functions["get_nonce"].call()
     inner_calldata=[evaluator_address, validator_selector, 2, 1, reward_account]
     outer_calldata=[multi_addr, submit_selector, nonce_1, len(inner_calldata), *inner_calldata]
@@ -83,7 +90,7 @@ async def main():
     eventData = await print_n_wait(client, sub_invocation)
 
     #
-    # MISSION 9
+    # ACTION ITEM 4: provide first tx confirmation
     #
     confirm_selector = get_selector_from_name("confirm_tx")
 
@@ -103,6 +110,9 @@ async def main():
 
     await print_n_wait(client, conf_invocation)
 
+    #
+    # Provide second tx confirmation
+    #
     (nonce_3, ) = await sig3.functions["get_nonce"].call()
     conf_2_calldata=[multi_addr, confirm_selector, nonce_3, 1, eventData[1]]
 
@@ -121,7 +131,7 @@ async def main():
     await print_n_wait(client, conf_2_invocation)
 
     #
-    # MISSION 10
+    # Execute a submitted confirmed transaction
     #
     execute_selector = get_selector_from_name("__execute__")
     exec_calldata=[multi_addr, execute_selector, nonce_1+1, 1, eventData[1]]

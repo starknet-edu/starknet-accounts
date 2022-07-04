@@ -34,7 +34,8 @@ end
 # GETTERS
 ####################
 #
-# MISSION 1
+# ACTION ITEM 1: implement a secp256 signature verification
+# - reference: https://github.com/starkware-libs/cairo-examples/blob/master/secp/secp_example.cairo
 #
 @view
 func is_valid_signature{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(

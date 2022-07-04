@@ -25,7 +25,8 @@ end
 # GETTERS
 ####################
 #
-# MISSION 1
+# ACTION ITEM 1: verify the provided signature with std library `verify_ecdsa_signature`
+# - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/signature.cairo
 #
 @view
 func is_valid_signature{

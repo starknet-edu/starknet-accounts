@@ -22,16 +22,17 @@ async def main():
     blue.print("\t 4) invoke the validator check with the signature in the tx_info field\n")
 
     #
-    # MISSION 1
+    # ACTION ITEM 1: find the first EIP number discussing account abstraction
     #
     INPUT_1 = 2938
+
+    #
+    # ACTION ITEM 2: find the second EIP number discussing account abstraction
+    #
     INPUT_2 = 4337
     blue.print(f"First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_1}")
     blue.print(f"Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_2}\n")
 
-    #
-    # MISSION 2
-    #
     client = get_client()
 
     sig1, sig1_addr = await deploy_account(client, data['SIGNATURE_1'])
@@ -43,9 +44,6 @@ async def main():
       
     _, evaluator_address = await get_evaluator(client)
     
-    #
-    # MISSION 3
-    #
     hash = pedersen_hash(INPUT_1, INPUT_2)
     hash_final = pedersen_hash(hash, sig1_addr)
     signature = sign(hash_final, data['PRIVATE_KEY'])
@@ -56,9 +54,6 @@ async def main():
         calldata_len=3,
         calldata=[INPUT_1, INPUT_2, reward_account])
     
-    #
-    # MISSION 4
-    #
     invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)

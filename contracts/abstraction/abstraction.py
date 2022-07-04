@@ -30,7 +30,7 @@ async def main():
     PUB_Y = data['ABSTRACT_PUB_Y']
 
     #
-    # MISSION 2
+    # Format the calldata for custom signature
     #
     calldata=[
         {
@@ -56,7 +56,7 @@ async def main():
     _, evaluator_address = await get_evaluator(client)
 
     #
-    # MISSION 3
+    # Sign the payload with secp256 signature scheme
     #
     sk = SigningKey.from_string(ABSTRACT_PRIV.to_bytes(32, 'big'), curve=SECP256k1, hashfunc=sha256)
 
@@ -70,7 +70,7 @@ async def main():
     sig_s = int.from_bytes(signature[32:], "big")
 
     #
-    # MISSION 4
+    # ACTION ITEM 2: format the signature data for BigInt3 data structure
     #
     bigHash=[]
     bigR=[]
@@ -88,7 +88,7 @@ async def main():
     calldata = [*bigHash, *bigR, *bigS, reward_account]
 
     #
-    # MISSION 5
+    # Submit the transaction
     #
     (nonce, ) = await abstraction.functions["get_nonce"].call()
     prepared = abstraction.functions["__execute__"].prepare(

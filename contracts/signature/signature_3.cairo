@@ -12,6 +12,9 @@ from starkware.cairo.common.alloc import alloc
 func public_key() -> (res : felt):
 end
 
+#
+# ACTION_ITEM 1: implement '@storage_var' account_nonce()
+#
 @storage_var
 func account_nonce() -> (res : felt):
 end
@@ -58,6 +61,9 @@ func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     let (_current_nonce) = account_nonce.read()
     assert _current_nonce = calldata[0]
 
+    #
+    # ACTION ITEM 2: increment `account_nonce` for each transaction signature
+    #
     account_nonce.write(_current_nonce + 1)
 
     let (vec : felt*) = alloc()

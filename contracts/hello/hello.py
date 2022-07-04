@@ -18,20 +18,26 @@ async def main():
     blue.print("\t 3) pass 'random' via calldata to your account contract\n")
 
     #
-    # MISSION 1
+    # Initialize StarkNet Client
     #
     client = get_client()
 
     #
-    # MISSION 2
+    # Compile and Deploy `hello.cairo`
     #
     hello, hello_addr = await deploy_account(client=client, contract_path=data['HELLO'])
 
+    #
+    # Transfer ETH to pay for fees
+    #
     reward_account = await fund_account(hello_addr)
     if reward_account == "":
       red.print("Account must have ETH to cover transaction fees")
       return
-        
+
+    #
+    # Check answer against 'evaluator.cairo'
+    #    
     evaluator, evaluator_address = await get_evaluator(client)
     (random, ) = await evaluator.functions["get_random"].call()
 
@@ -39,7 +45,7 @@ async def main():
         contract_address=evaluator_address,
         selector=get_selector_from_name("validate_hello"),
         calldata_len=2,
-        calldata=[random, reward_account]) # MISSION 3
+        calldata=[random, reward_account])
     invocation = await prepared.invoke(max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)

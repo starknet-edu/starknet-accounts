@@ -19,9 +19,6 @@ async def main():
     blue.print("\t 3) format and sign invocations and calldata")
     blue.print("\t 4) invoke multiple contracts in the same block\n")
 
-    #
-    # MISSION 2
-    #
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
@@ -36,10 +33,12 @@ async def main():
 
     _, evaluator_address = await get_evaluator(client)
     
-    #
-    # MISSION 3
-    #
+
     selector = get_selector_from_name("validate_multicall")
+    
+    #
+    # ACTION ITEM 1: format the 'CallArray'
+    #
     call_array = [
         {
             "to": evaluator_address,
@@ -62,6 +61,10 @@ async def main():
     ]
     
     (nonce, ) = await multicall.functions["get_nonce"].call()
+
+    #
+    # ACTION ITEM 2: format the 'CalldataArray'
+    #
     inner_calldata = [reward_account, reward_account, reward_account]
     calldata = [
         nonce, len(call_array),
@@ -82,9 +85,6 @@ async def main():
         calldata=inner_calldata,
     )
 
-    #
-    # MISSION 4
-    #
     invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)

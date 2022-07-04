@@ -96,9 +96,6 @@ end
 ####################
 # CONSTRUCTOR
 ####################
-#
-# MISSION 1
-#
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     owners_len : felt, owners : felt*
@@ -113,9 +110,6 @@ end
 ####################
 # GETTERS
 ####################
-#
-# MISSION 2
-#
 @view
 func get_confirmations{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     tx_index : felt
@@ -231,7 +225,7 @@ end
 # EXTERNAL FUNCTIONS
 ####################
 #
-# MISSION 3
+# ACTION ITEM 1: implement the ability for a whitelisted signer to submit a tx to the multisig
 #
 @external
 func submit_tx{
@@ -257,7 +251,7 @@ func submit_tx{
 end
 
 #
-# MISSION 4
+# ACTION ITEM 2: implement the ability for a multisig member to confirm a submitted transaction
 #
 @external
 func confirm_tx{
@@ -294,9 +288,6 @@ func confirm_tx{
     return ()
 end
 
-#
-# MISSION 5
-#
 @external
 func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     tx_index : felt

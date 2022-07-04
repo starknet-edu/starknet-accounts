@@ -21,9 +21,6 @@ async def main():
     blue.print("\t 4) sign calldata")
     blue.print("\t 5) invoke check\n")
 
-    #
-    # MISSION 3
-    #
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
@@ -39,7 +36,7 @@ async def main():
     _, evaluator_address = await get_evaluator(client)
     
     #
-    # MISSION 4
+    # ACTION ITEM 3: call @view 'get_nonce' to include in tx signature
     #
     (nonce, ) = await sig3.functions["get_nonce"].call()
     selector = get_selector_from_name("validate_signature_3")
@@ -49,15 +46,15 @@ async def main():
     hash_final = pedersen_hash(hash, nonce)
     signature = sign(hash_final, private_key)
 
+    #
+    # ACTION ITEM 4: provide expected calldata
+    #
     prepared = sig3.functions["__execute__"].prepare(
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=2,
         calldata=[nonce, reward_account])
     
-    #
-    # MISSION 5
-    #
     invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation)

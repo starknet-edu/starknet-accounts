@@ -21,9 +21,6 @@ async def main():
     blue.print("\t 4) invoke the validator check with the signature in the tx_info field")
     blue.print("\t 5) call until you hit paydirt\n")
 
-    #
-    # MISSION 2
-    #
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
@@ -38,31 +35,25 @@ async def main():
       
     _, evaluator_address = await get_evaluator(client)
     
-    #
-    # MISSION 3
-    #
     selector = get_selector_from_name("validate_signature_2")
     calldata = [evaluator_address, selector, 2, 1, reward_account]
 
     hash = invoke_tx_hash(sig2_addr, calldata)
     signature = sign(hash, private_key)
 
+    #
+    # ACTION ITEM 2: provide tx signature via starknet_py
+    #
     prepared1 = sig2.functions["__execute__"].prepare(
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=3,
         calldata=[hash, random.randint(0, private_key), reward_account])
 
-    #
-    # MISSION 4
-    #
     invocation1 = await prepared1.invoke(signature=signature, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation1)
 
-    #
-    # MISSION 5
-    #
     prepared2 = sig2.functions["__execute__"].prepare(
         contract_address=evaluator_address,
         selector=selector,
