@@ -38,7 +38,10 @@ async def main():
     #
     # ACTION ITEM 3: call @view 'get_nonce' to include in tx signature
     #
-    (nonce, ) = await sig3.functions["get_nonce"].call()
+
+    #
+    # <CODE>
+    #
     selector = get_selector_from_name("validate_signature_3")
     calldata = [evaluator_address, selector, 2, nonce, reward_account]
 
@@ -53,7 +56,7 @@ async def main():
         contract_address=evaluator_address,
         selector=selector,
         calldata_len=2,
-        calldata=[nonce, reward_account])
+        calldata=[0, 0])
     
     invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
 

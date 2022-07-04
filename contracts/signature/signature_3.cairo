@@ -16,8 +16,9 @@ end
 # ACTION_ITEM 1: implement '@storage_var' account_nonce()
 #
 @storage_var
-func account_nonce() -> (res : felt):
-end
+#
+# <CODE>
+#
 
 ####################
 # CONSTRUCTOR
@@ -64,7 +65,10 @@ func __execute__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     #
     # ACTION ITEM 2: increment `account_nonce` for each transaction signature
     #
-    account_nonce.write(_current_nonce + 1)
+
+    #
+    # <CODE>
+    #
 
     let (vec : felt*) = alloc()
     assert [vec] = _current_nonce + 1

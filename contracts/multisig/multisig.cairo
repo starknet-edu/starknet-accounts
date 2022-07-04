@@ -234,17 +234,9 @@ func submit_tx{
     alloc_locals
     _require_owner()
 
-    let (caller) = get_caller_address()
-    let (tx_info) = get_tx_info()
-    IAccount.is_valid_signature(
-        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
-    )
-
-    let (tx_index) = curr_tx_index.read()
-    transactions.write(tx_index, Transaction(contract_address, function_selector, calldata_len))
-    _spread_calldata(tx_index, 0, calldata_len, calldata)
-
-    curr_tx_index.write(tx_index + 1)
+    #
+    # <CODE>
+    #
 
     submit.emit(caller, tx_index)
     return ()
@@ -260,29 +252,9 @@ func confirm_tx{
     alloc_locals
     _require_owner()
 
-    let (tx : Transaction) = transactions.read(tx_index)
-    assert_not_zero(tx.contract_address)
-
-    let (num_confirmations) = tx_confirms.read(tx_index)
-    let (executed) = tx_is_executed.read(tx_index)
-    assert executed = FALSE
-
-    let (caller) = get_caller_address()
-    let (tx_info) = get_tx_info()
-    IAccount.is_valid_signature(
-        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
-    )
-
-    let (pub_key) = IAccount.get_signer(caller)
-    test_signature.write(
-        TestSignature(tx_info.transaction_hash, pub_key, tx_info.signature[0], tx_info.signature[1])
-    )
-
-    let (confirmed) = has_confirmed.read(tx_index, caller)
-    assert confirmed = FALSE
-
-    tx_confirms.write(tx_index, num_confirmations + 1)
-    has_confirmed.write(tx_index, caller, TRUE)
+    #
+    # <CODE>
+    #
 
     confirm.emit(caller, tx_index)
     return ()

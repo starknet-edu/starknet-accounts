@@ -44,8 +44,10 @@ func is_valid_signature{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     alloc_locals
     let (_public_key_pt : EcPoint) = public_key.read()
 
-    verify_ecdsa(public_key_pt=_public_key_pt, msg_hash=hash, r=sig_r, s=sig_s)
-
+    #
+    # <CODE>
+    #
+    
     return ()
 end
 

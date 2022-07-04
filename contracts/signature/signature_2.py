@@ -50,7 +50,7 @@ async def main():
         calldata_len=3,
         calldata=[hash, random.randint(0, private_key), reward_account])
 
-    invocation1 = await prepared1.invoke(signature=signature, max_fee=data['MAX_FEE'])
+    invocation1 = await prepared1.invoke(signature=0, max_fee=data['MAX_FEE'])
 
     await print_n_wait(client, invocation1)
 
