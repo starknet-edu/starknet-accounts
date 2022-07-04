@@ -1,19 +1,5 @@
 {
-    "http://localhost:5000": {
-        "abstraction/abstraction": "0x3fc96a2d9c90dca9480d81922e20aceae035f0818d68333c236cd05b702a3f8",
-        "evaluator": "0x7ea78b5ba2bedfb1657adb33f64dba9a10c88cca2fd791585f4607577f55b8a",
-        "hello/hello": "0x161b7c446d308890c8a354731bc945b15340df09f5390063f79d3c4dcd6d3c3",
-        "multicall/multicall": "0x3f6c785be602a103191f3872af192c10ad2ec1badedd9b16babc67f404594bd",
-        "multisig/multisig": "0x3c391c25ea6498f8bb8ee0fc2aed231da5d33be837c1e14aa9b8fc4aabeb830",
-        "multisig/signature_basic_1": "0x29d0f563deb931b2610ff3a25581be397ec3c3c1c3012c4b1cde24f4165799c",
-        "multisig/signature_basic_2": "0x75e79750c8441e5376acaff740be52461cd97969ebf2c78424de0e882c3ec29",
-        "multisig/signature_basic_3": "0x572d19007e44148ec3adbf128a2f0886f7be9cee852b5a8439a906da2d235c7",
-        "signature/signature_1": "0x453b469c171c9455b271b8c6d816abc9cf6990fb494daae4510ec531ad2998a",
-        "signature/signature_2": "0x31c84317db91c31f6995026307d900d401129621e69558b9de52cc9b29d4eb3",
-        "signature/signature_3": "0xa6f606494e29e05b3b25bcda6bcf468b5dbdd9933fd264b9ef2b909e6e88ad",
-        "token/TDERC20": "0x670057632fd615a107b2f8ac97d46ab1d169c6b83f510ed52640a73a44f2dd7",
-        "tutorial/player_registry": "0x649a626fc2cc223b77e281572362c3012773bf7b9e2d704ebf46618d38d7e83"
-    },
+    "http://localhost:5000": {},
     "testnet": {
         "evaluator": "0x04f3bfc2034e30bd25f43502e3c45d3ebe03f9d3060b4c84003690b9a68a41e1",
         "token/TDERC20": "0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f",
