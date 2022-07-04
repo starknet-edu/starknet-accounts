@@ -3,51 +3,131 @@
     <h1>StarkNet Account Abstraction</h1>
     <br>
 
-|Exercise|Topic|
-|---|---|
-|[hello](contracts/hello)|hello account world|
-|[signature](contracts/signature)|handling Stark signatures|
-|[multicall](contracts/multicall)|multiple contract call account|
-|[multisig](contracts/multisig)|multiple signature account
-|[abstraction](contracts/abstraction)|unique account architecture|
+|Exercise|Topic|Points|
+|---|---|---|
+|[hello](contracts/hello/hello.cairo)|hello account world|100|
+|[signature_1](contracts/signature/signature_1.cairo)|handling Stark signatures|100|
+|[signature_2](contracts/signature/signature_2.cairo)|handling Stark signatures|200|
+|[signature_3](contracts/signature/signature_3.cairo)|handling Stark signatures|300|
+|[multicall](contracts/multicall/multicall.cairo)|multiple contract call account|500|
+|[multisig](contracts/multisig/multisig.cairo)|multiple signature account|1000|
+|[abstraction](contracts/abstraction/abstraction.cairo)|unique account architecture|2000|
 </div>
 
-# Setup
+# Tutorial Setup
 
-This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html) and [starknet.py](https://github.com/software-mansion/starknet.py). Each exercise comes with a python helper script which includes:
+This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py):
 
-- mission objectives
-- contract deployment functions
-- [validator](./contracts/validator) interactions
+***install tutorial dependencies***
 
 ```bash
-# assumes you're using python3.7
+sudo apt install -y libgmp3-dev
+pip3 install ecdsa fastecdsa sympy rich
+pip3 install cairo-lang
+```
+
+***init cairo environment***
+
+```bash
 python3.7 -m venv ~/cairo_venv
 source ~/cairo_venv/bin/activate
-pip3 install --upgrade starknet.py
-pip3 install --upgrade pytest pytest-asyncio
-pip3 install --upgrade cairo-lang
-
-# set environment variables
-export STARKNET_NETWORK=alpha-goerli
-export VALIDATOR_ADDRESS=0x197c942a62c77d18249adef3c6a8fd89b8725330b43640a5f05850a871fb401
-export WALLET_ADDRESS=<e.g. ARGENT/BRAVOS wallet address>
 ```
 
-Deploying contracts can take some time, so we've implemented a cache of your deployed addresses at `contracts/account.json`. If you've made a change to your contract and wish to deploy fresh simply delete the line from `account.json` or set `export ACCOUNT_CACHE=false`.
-
-The contract stubs and helper scripts will be mising crucial information for you to figure out and the excercises will get increasingly difficult(and worth more [points](https://goerli.voyager.online/contract/0x6f9a9435928b768b671c036e72c07d50b1af4d68c4cbfd60ed4c970bf41c77)(the points are not real and can't be transferred)).
-
-If you hit a roadblock the first place to look is the deployed [validator contract](https://goerli.voyager.online/contract/0x197c942a62c77d18249adef3c6a8fd89b8725330b43640a5f05850a871fb401) and what it is checking for. We recommend [testing](https://www.cairo-lang.org/docs/hello_starknet/unit_tests.html?highlight=test) your contract before attempting to deploy/validate.
+***install starknet dependencies***
 
 ```bash
-cd tests
-pytest -s hello.py
+pip3 install --upgrade starknet.py
 ```
 
-***!!!DON'T CHEAT!!!***
+***install pytest dependencies***
 
-...but if you need help you can reference the [Open Zeppelin](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account) account contracts or `hints/<TOPIC>` branch of this repository.
+```bash
+pip3 install --upgrade pytest pytest-asyncio
+```
+
+## Overview
+
+This tutorial consistes of various StarkNet account conracts(listed above) and `starknet_py` helper scripts for compilation, deployment, and testing.
+
+***The goal of this tutorial is to pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
+
+To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions on how to complete each exercise. The exercises will get more difficult and will require you to:
+
+- manipulate the python files
+- write the relevant Cairo code.
+
+These tasks will be annotated with the commented `# ACTION ITEM <NUM>`
+
+Transactions take some time to complete on `testnet` so you should develop and debug locally first. Let's try it out with the `contracts/hello/hello.cairo` exercise. There are no `action items` that need to be completed for this exercise and we can simple test that it works.
+
+***1) init devnet***
+
+```bash
+starknet-devnet --port 5000 --seed 0
+```
+
+***2) deploy evaluator***
+
+```bash
+# NOTE: 
+# - you do not have to deploy the validator for `testnet`
+# - devnet contract details can be found in `contracts/accounts.json`
+cd contracts
+python3 evaluator.py
+```
+
+***3) deploy/test hello contract***
+
+```bash
+python3 hello/hello.py
+```
+
+The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. If you would like to disable this cache run:
+
+```bash
+export ACCOUNT_CACHE=false
+```
+
+When deploying/testing on devnet the starknet_py scripts will use the `TESTNET_ACCOUNT` in the `hints.json` file for both fee transfer and ERC20 points rewards. Since there were no `action items` for you to complete you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
+
+```bash
+curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "contract_address": "<'contracts/accounts.json' --> 'http://localhost:5000' -->_'TDERC20-address'>",
+    "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
+    "calldata": ["<'contracts/hints.json' --> 'DEVNET-ACCOUNT' --> 'ADDRESS'>"],
+    "signature": []
+}'
+```
+
+When deploying to devnet fill out the relevant details in the `hints.json` file under `TESNET-ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
+
+[Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example:
+
+***ADDRESS***
+
+- 'PRIVATE'
+- 'PUBLIC'
+
+Accounts on StarkNet must pay [fese](https://docs.starknet.io/docs/Fees/fee-mechanism) to cover the L1 footprint of their transaction and therefor the account details you enter must have Goerli ETH(~0.5 ETH) and can be funded either through the [starkgate bridge](https://goerli.starkgate.starknet.io) or [StarkNet Faucet](https://faucet.goerli.starknet.io).
+
+After you have tested your contract locally you can test on `testnet` by passing the `--testnet` flag to the starknet_py script:
+
+```bash
+python3 hello/hello.py --testnet
+```
+
+## Hints
+
+If you need hints on tutorial solutions you can find them in repository branches named `hint/<exercise>`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract for that exercise.
+
+To run the hints:
+
+```bash
+cd hints
+pytest hello.py
+```
 
 # Walk Through
 
@@ -65,7 +145,7 @@ Lets deploy and test the simplest account contract we can:
 
 ```bash
 cd contracts/hello
-python3 hello.py
+python3 hello/hello.py
 ```
 
 The job of an account contract is to execute arbitrary business logic on behalf of a sepcific entity. This is why we see a similar argument pattern for most execute functions:
@@ -91,8 +171,8 @@ Account abstraction cares more about `who`(i.e. the contract address) rather tha
 This leaves the ECDSA signature scheme up to the developer and is typically implemented using the [pedersen hash](https://docs.starknet.io/docs/Hashing/hash-functions) and native Stark curve:
 
 ```bash
-cd contracts/signature
-python3 signature_1.py
+cd contracts
+python3 signature/signature_1.py
 ```
 
 The `signature_1` contract has no concept of a public/private keypair. All the signing was done "off-chain" and yet with account abstraction we're still able to operate a functioning account with a populated signature field.
@@ -102,8 +182,8 @@ Let's couple the signing logic more succintly wtih the account:
 ***HINT: we have not yet implemented a [nonce](https://ethereum.org/en/developers/docs/accounts/#an-account-examined)***
 
 ```bash
-cd contracts/signature
-python3 signature_2.py
+cd contracts
+python3 signature/signature_2.py
 ```
 
 Although we are free to populate the signature field how we please, the StarkNet OS has a specific method for hashing [transaction data](https://docs.starknet.io/docs/Blocks/transactions#transaction-hash-1).
@@ -111,8 +191,8 @@ Although we are free to populate the signature field how we please, the StarkNet
 This transaction hash encompasses all the relevant `tx_info`, and typically the message_hash signed by account contracts. The account owner is thereby acknowledging all of the relevant transaction information:
 
 ```bash
-cd contracts/signature
-python3 signature_3.py
+cd contracts
+python3 signature/signature_3.py
 ```
 
 ## [MultiCall](./contracts/multicall)
@@ -126,8 +206,8 @@ There are many implementations of multicall that allow the caller flexibility in
 Let's implement a multicall account for StarkNet:
 
 ```bash
-cd contracts/multicall
-python3 multicall.py
+cd contracts
+python3 multicall/multicall.py
 ```
 
 ## [MultiSig](./contracts/multisig)
@@ -139,8 +219,8 @@ The amount of signing keys that belong to the account and the ammount of keys re
 Lets implement a `2/3 multisig` account(i.e. 2 signatures are required out of a total 3 signers for a transaction to be executed):
 
 ```bash
-cd contracts/multisig
-python3 multisig.py
+cd contracts
+python3 multisig/multisig.py
 ```
 
 ## [Abstraction](./contracts/abstraction)
@@ -152,6 +232,6 @@ Discussions on novel account architecutres are popping up more and [more](https:
 For an example of a unique account architecture we will build a contract that implements it's signatures scheme with the `secp256k1` curve and `sha256` instead of our native StarkNet curve:
 
 ```bash
-cd contracts/abstraction
-python3 abstraction.py
+cd contracts
+python3 abstraction/abstraction.py
 ```
