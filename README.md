@@ -50,9 +50,9 @@ pip3 install --upgrade pytest pytest-asyncio
 
 This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
 
-***THE GOAL:***
-
-***pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
+<div align="center">
+    <strong>THE GOAL<br>pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)<strong>
+</div>
 
 To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
 
