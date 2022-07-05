@@ -7,12 +7,14 @@
 import json
 import asyncio
 
-from utils import compile_deploy, get_account_client
+from utils import compile_deploy, get_account_client, devnet_height_check
 
 with open("hints.json", "r") as f:
   data = json.load(f)
 
 async def main():
+    devnet_height_check()
+    
     print("\u001b[35mEvaluator Deployment only run on Devnet:")
     acc_client, acc_addr = get_account_client()
 
