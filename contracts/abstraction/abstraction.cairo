@@ -47,7 +47,7 @@ func is_valid_signature{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     #
     # <CODE>
     #
-    
+
     return ()
 end
 
