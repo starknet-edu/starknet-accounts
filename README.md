@@ -14,7 +14,7 @@
 |[abstraction](contracts/abstraction/abstraction.cairo)|unique account architecture|2000|
 </div>
 
-# Tutorial Setup
+# Setup
 
 This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py):
 
@@ -22,7 +22,8 @@ This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quick
 
 ```bash
 sudo apt install -y libgmp3-dev
-pip3 install ecdsa fastecdsa sympy rich
+pip3 install ecdsa fastecdsa sympy
+pip3 install rich requests
 pip3 install cairo-lang
 ```
 
@@ -36,6 +37,8 @@ source ~/cairo_venv/bin/activate
 ***install starknet dependencies***
 
 ```bash
+pip3 install --upgrade openzeppelin-cairo-contracts
+pip3 install --upgrade starknet-devnet
 pip3 install --upgrade starknet.py
 ```
 
@@ -45,20 +48,24 @@ pip3 install --upgrade starknet.py
 pip3 install --upgrade pytest pytest-asyncio
 ```
 
-## Overview
+# Overview
 
-This tutorial consistes of various StarkNet account conracts(listed above) and `starknet_py` helper scripts for compilation, deployment, and testing.
+This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
 
-***The goal of this tutorial is to pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
+<div align="center">
+    <strong>THE GOAL:<br>pass the 'evaluator.cairo' checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
+</div>
 
-To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions on how to complete each exercise. The exercises will get more difficult and will require you to:
+To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
 
 - manipulate the python files
 - write the relevant Cairo code.
 
-These tasks will be annotated with the commented `# ACTION ITEM <NUM>`
+These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
 
-Transactions take some time to complete on `testnet` so you should develop and debug locally first. Let's try it out with the `contracts/hello/hello.cairo` exercise. There are no `action items` that need to be completed for this exercise and we can simple test that it works.
+## Devnet
+
+Transactions take time to complete on [testnet](https://goerli.voyager.online) so you should develop and debug locally first. Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
 
 ***1) init devnet***
 
@@ -82,30 +89,40 @@ python3 evaluator.py
 python3 hello/hello.py
 ```
 
-The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contrats will need to be deleted everytime devnet is restart. If you would like to disable this cache run:
+The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contracts `MUST BE DELETED` everytime devnet is restarted. If you would like to disable this constract cache run:
 
 ```bash
 export ACCOUNT_CACHE=false
 ```
 
-When deploying/testing on devnet the starknet_py scripts will use the `TESTNET_ACCOUNT` in the `hints.json` file for both fee transfer and ERC20 points rewards. Since there were no `action items` for you to complete you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
+There were no `action items` for you to complete so you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance with the following `curl` where:
+
+- "contract_address" = "account.json" --> "http://localhost:5000" --> "token/TDERC20" 
+
+- "entry_point_selector" = felt representation of selector "balanceOf" (no change required)
+
+- "calldata" = "hints.json" --> "DEVNET_ACCOUNT" --> "ADDRESS"
 
 ```bash
 curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "contract_address": "<'contracts/accounts.json' --> 'http://localhost:5000' -->_'TDERC20-address'>",
+    "contract_address": "0x670057632fd615a107b2f8ac97d46ab1d169c6b83f510ed52640a73a44f2dd7",
     "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
-    "calldata": ["<'contracts/hints.json' --> 'DEVNET-ACCOUNT' --> 'ADDRESS'>"],
+    "calldata": ["3562055384976875123115280411327378123839557441680670463096306030682092229914"],
     "signature": []
 }'
 ```
 
-When deploying to devnet fill out the relevant details in the `hints.json` file under `TESNET-ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
+## Testnet
 
-## [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
+When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
-<img align="center" src="./misc/argent.png" style="width: 350px">
+### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
+
+<div align="center">
+    <img src="./misc/argent.png" style="width: 350px">
+</div>
 
 ***ADDRESS***
 
@@ -128,9 +145,14 @@ When deploying to devnet fill out the relevant details in the `hints.json` file 
 - Select `Decimal` query
 - Copy the public key from this screen and paste it in `hints.json` `TESNET_ACCOUNT` -> `PUBLIC`
 
+***Example `hints.json`***
+<div align="center">
+    <img src="./misc/hints.png" style="width: 350px">
+</div>
+
 ## Fees
 
-Accounts on StarkNet must pay [fese](https://docs.starknet.io/docs/Fees/fee-mechanism) to cover the L1 footprint of their transaction and therefor the account details you enter must have Goerli ETH(~0.5 ETH) and can be funded either through the [starkgate bridge](https://goerli.starkgate.starknet.io) or [StarkNet Faucet](https://faucet.goerli.starknet.io).
+Accounts on StarkNet must pay [fees](https://docs.starknet.io/docs/Fees/fee-mechanism) to cover the L1 footprint of their transaction. So the account details you enter must have Goerli ETH(~0.5 ETH) and can be funded either through the [starkgate bridge](https://goerli.starkgate.starknet.io) or [StarkNet Faucet](https://faucet.goerli.starknet.io).
 
 After you have tested your contract locally you can test on `testnet` by passing the `--testnet` flag to the starknet_py script:
 
@@ -140,7 +162,7 @@ python3 hello/hello.py --testnet
 
 ## Hints
 
-If you need hints on tutorial solutions you can find them in repository branch named `hint/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract for that exercise.
+If you need hints on tutorial solutions you can find them in repository branch named `hints/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
 
 To run the hints:
 
@@ -219,7 +241,9 @@ python3 signature/signature_3.py
 
 Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do!
 
-A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block
+A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block.
+
+Popular wallet providers like Argent use this design to implement [account contracts](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) on StarkNet to accomodate a multicall or a single call with one scheme.
 
 There are many implementations of multicall that allow the caller flexibility in how they distribute and batch their transactions.
 
