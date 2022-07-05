@@ -22,7 +22,8 @@ This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quick
 
 ```bash
 sudo apt install -y libgmp3-dev
-pip3 install ecdsa fastecdsa sympy rich
+pip3 install ecdsa fastecdsa sympy
+pip3 install rich requests
 pip3 install cairo-lang
 ```
 
