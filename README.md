@@ -94,15 +94,21 @@ The relevant evaluator contract addresses are saved to the `contracts/accounts.j
 export ACCOUNT_CACHE=false
 ```
 
-There were no `action items` for you to complete so you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
+There were no `action items` for you to complete so you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance with the following `curl` where:
+
+- "contract_address" = "account.json" --> "http://localhost:5000" --> "token/TDERC20" 
+
+- "entry_point_selector" = felt representation of selector "balanceOf" (no change required)
+
+- "calldata" = "hints.json" --> "DEVNET_ACCOUNT" --> "ADDRESS"
 
 ```bash
 curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "contract_address": "<'contracts/accounts.json' --> 'http://localhost:5000' -->_'TDERC20-address'>",
+    "contract_address": "0x670057632fd615a107b2f8ac97d46ab1d169c6b83f510ed52640a73a44f2dd7",
     "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
-    "calldata": ["<'contracts/hints.json' --> 'DEVNET-ACCOUNT' --> 'ADDRESS'>"],
+    "calldata": ["3562055384976875123115280411327378123839557441680670463096306030682092229914"],
     "signature": []
 }'
 ```
@@ -111,7 +117,7 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 
 When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
-### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example:
+### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
 
 <div align="center">
     <img src="./misc/argent.png" style="width: 350px">

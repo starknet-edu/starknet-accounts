@@ -1,5 +1,10 @@
 {
-    "http://localhost:5000": {},
+    "http://localhost:5000": {
+        "evaluator": "0x7ea78b5ba2bedfb1657adb33f64dba9a10c88cca2fd791585f4607577f55b8a",
+        "hello/hello": "0x1a2ddb01c5801d75402c1bb3f3ff8af5273d0afe0429b39ab445ae199778a4c",
+        "token/TDERC20": "0x670057632fd615a107b2f8ac97d46ab1d169c6b83f510ed52640a73a44f2dd7",
+        "tutorial/player_registry": "0x649a626fc2cc223b77e281572362c3012773bf7b9e2d704ebf46618d38d7e83"
+    },
     "testnet": {
         "evaluator": "0x04f3bfc2034e30bd25f43502e3c45d3ebe03f9d3060b4c84003690b9a68a41e1",
         "token/TDERC20": "0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f",
