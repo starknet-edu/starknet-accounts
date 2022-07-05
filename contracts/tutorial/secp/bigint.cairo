@@ -38,7 +38,8 @@ func bigint_mul(x : BigInt3, y : BigInt3) -> (res : UnreducedBigInt5):
         d1=x.d0 * y.d1 + x.d1 * y.d0,
         d2=x.d0 * y.d2 + x.d1 * y.d1 + x.d2 * y.d0,
         d3=x.d1 * y.d2 + x.d2 * y.d1,
-        d4=x.d2 * y.d2))
+        d4=x.d2 * y.d2),
+    )
 end
 
 # Returns a BigInt3 instance whose value is controlled by a prover hint.
