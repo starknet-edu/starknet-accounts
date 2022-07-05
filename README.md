@@ -36,6 +36,7 @@ source ~/cairo_venv/bin/activate
 ***install starknet dependencies***
 
 ```bash
+pip3 install --upgrade starknet-devnet
 pip3 install --upgrade starknet.py
 ```
 
@@ -49,7 +50,7 @@ pip3 install --upgrade pytest pytest-asyncio
 
 This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
 
-***The goal of this tutorial is to pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
+***THE GOA: pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)***
 
 To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
 
@@ -58,7 +59,9 @@ To complete exercises read the `mission statement` at the top of each starknet_p
 
 These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
 
-Transactions take time to complete on `testnet` so you should develop and debug locally first. Let's try it out with the `contracts/hello/hello.cairo` exercise. There are no `action items` that need to be completed for this exercise and we can simply test that it works.
+### Devnet
+
+Transactions take time to complete on [testnet](https://goerli.voyager.online) so you should develop and debug locally first. Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
 
 ***1) init devnet***
 
@@ -88,9 +91,7 @@ The relevant evaluator contract addresses are saved to the `contracts/accounts.j
 export ACCOUNT_CACHE=false
 ```
 
-When deploying/testing on devnet the starknet_py scripts will use the `TESTNET_ACCOUNT` field in the `hints.json` file for both fee transfer and ERC20 points rewards.
-
-Since there were no `action items` for you to complete you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
+There were no `action items` for you to complete so you should see a succesfull `PAYDAY!!!` response from the devnet evaluator contract. To confirm you can check your ERC20 balance as follows(populate the data in `<>` angle brackets):
 
 ```bash
 curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
@@ -103,9 +104,11 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 }'
 ```
 
-## [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
+### Testnet
 
-When deploying to testnet fill out the relevant details in the `hints.json` file under `TESNET-ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
+***[Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example***
+
+When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
 <div align="center">
     <img src="./misc/argent.png" style="width: 350px">
@@ -149,7 +152,7 @@ python3 hello/hello.py --testnet
 
 ## Hints
 
-If you need hints on tutorial solutions you can find them in repository branch named `hint/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract for that exercise.
+If you need hints on tutorial solutions you can find them in repository branch named `hints/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
 
 To run the hints:
 
