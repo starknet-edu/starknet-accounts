@@ -37,6 +37,7 @@ source ~/cairo_venv/bin/activate
 ***install starknet dependencies***
 
 ```bash
+pip3 install --upgrade openzeppelin-cairo-contracts
 pip3 install --upgrade starknet-devnet
 pip3 install --upgrade starknet.py
 ```
