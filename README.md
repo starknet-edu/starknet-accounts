@@ -46,12 +46,12 @@ pip3 install --upgrade starknet.py
 pip3 install --upgrade pytest pytest-asyncio
 ```
 
-## Overview
+# Overview
 
 This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
 
 <div align="center">
-    <strong>THE GOAL:<br>pass the `evaluator.cairo` checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
+    <strong>THE GOAL:<br>pass the 'evaluator.cairo' checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
 </div>
 
 To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
@@ -61,7 +61,7 @@ To complete exercises read the `mission statement` at the top of each starknet_p
 
 These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
 
-### Devnet
+## Devnet
 
 Transactions take time to complete on [testnet](https://goerli.voyager.online) so you should develop and debug locally first. Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
 
@@ -106,9 +106,9 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 }'
 ```
 
-### Testnet
+## Testnet
 
-***[Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example***
+### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
 
 When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
