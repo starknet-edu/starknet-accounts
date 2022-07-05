@@ -108,9 +108,9 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 
 ## Testnet
 
-### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
-
 When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
+
+### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example:
 
 <div align="center">
     <img src="./misc/argent.png" style="width: 350px">
