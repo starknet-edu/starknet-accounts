@@ -227,3 +227,23 @@ def get_account_client():
             chain=StarknetChainId.TESTNET)
         
         return acc_client, addr
+
+def devnet_height_check():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testnet', action='store_true')
+    args = parser.parse_args()
+    if args.testnet:
+        red.print("evaluator only needs to be deployed to devnet")
+        return
+
+    height = data['DEVNET_URL']+"/feeder_gateway/get_block?blockNumber=latest"
+    response = requests.request("GET", height).json()
+
+    if 'message' in response:
+        if 'no blocks so far' in response['message']:
+            with open(ACCOUNT_FILE) as json_file:
+                acc_data = json.load(json_file)
+
+            with open(ACCOUNT_FILE, 'w') as outfile:
+                acc_data[data['DEVNET_URL']] = {}
+                json.dump(acc_data, outfile, sort_keys=True, indent=4)
