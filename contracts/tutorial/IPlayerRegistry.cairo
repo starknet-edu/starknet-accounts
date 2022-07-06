@@ -13,13 +13,13 @@ namespace IPlayerRegistry:
     func is_exercise_or_admin(account : felt) -> (permission : felt):
     end
 
-    func next_player_rank() -> (next_player_rank : felt):
+    func get_next_player_rank() -> (rank : felt):
     end
 
-    func players_registry(rank : felt) -> (account : felt):
+    func get_players_registry(rank : felt) -> (account : felt):
     end
 
-    func player_ranks(account : felt) -> (rank : felt):
+    func get_player_ranks(account : felt) -> (rank : felt):
     end
 
     func set_exercise_or_admin(account : felt, permission : felt):
