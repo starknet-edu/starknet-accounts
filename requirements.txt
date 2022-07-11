@@ -1,0 +1,7 @@
+rich 
+requests
+openzeppelin-cairo-contracts
+starknet-devnet
+starknet.py
+pytest 
+pytest-asyncio

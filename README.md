@@ -79,32 +79,17 @@ cd starknet-accounts
 ```
 ### Step 2 - Set up your environment
 
-This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py):
+This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py).
 
 ***Install the cairo environment***
 
 Set up the environment following [these instructions](https://starknet.io/docs/quickstart.html#quickstart)
 
-***Install tutorial dependencies***
+***Install dependencies***
 
 ```bash
-pip3 install rich requests
+pip3 install --upgrade -r requirements.txt
 ```
-
-***Install starknet dependencies***
-
-```bash
-pip3 install --upgrade openzeppelin-cairo-contracts
-pip3 install --upgrade starknet-devnet
-pip3 install --upgrade starknet.py
-```
-
-***Install pytest dependencies***
-
-```bash
-pip3 install --upgrade pytest pytest-asyncio
-```
-
 
 ### Step 3 - Set up your devnet
 
@@ -112,13 +97,13 @@ Transactions take time to complete on [testnet](https://goerli.voyager.online) s
 
 Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
 
-***1) init devnet***
+#### 1) init devnet
 
 ```bash
 starknet-devnet --port 5000 --seed 0 --gas-price 250
 ```
 
-***2) deploy evaluator***
+#### 2) deploy evaluator
 
 ```bash
 # NOTE: 
@@ -128,7 +113,7 @@ cd contracts
 python3 evaluator.py
 ```
 
-***3) deploy/test hello contract***
+#### 3) deploy/test hello contract 
 
 ```bash
 python3 hello/hello.py
@@ -217,6 +202,8 @@ cd hints
 pytest hello.py
 ```
 
+​
+​
 ## Working on the tutorial
 ### Exercise 1 - [Hello](./contracts/hello) 
 
@@ -232,6 +219,8 @@ The job of an account contract is to execute arbitrary business logic on behalf 
 Follow the prompt and collect 100 points.
 
 
+​
+​
 ### Exercise 2 - [Signatures](./contracts/signatures)
 #### Signature 1
 Unlike Ethereum [EOAs](https://ethereum.org/en/developers/docs/accounts/#externally-owned-accounts-and-key-pairs), StarkNet accounts don't have a hard requirement on being managed by a public/private key pair.
@@ -275,6 +264,8 @@ python3 signature/signature_3.py
 
 Follow the prompt and collect 300 points.
 
+​
+​
 ### Exercise 3 - [MultiCall](./contracts/multicall)
 
 Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do!
@@ -294,6 +285,8 @@ python3 multicall/multicall.py
 
 Follow the prompt and collect 500 points.
 
+​
+​
 ### Exercise 4 - [MultiSig](./contracts/multisig)
 
 A `multisig` or multiple signature wallet allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
@@ -308,6 +301,8 @@ python3 multisig/multisig.py
 ```
 Follow the prompt and collect 1000 points.
 
+​
+​
 ### Exercise 5 - [Abstraction](./contracts/abstraction)
 
 As StarkNet accounts are simply contracts we can implement any signing mechanism we want. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create `Sign-In` architectures using your StarkNet account. [JWT](https://github.com/BoBowchan/cairo-jsonwebtoken) token schems are being implemented.
