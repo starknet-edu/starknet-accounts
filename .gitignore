@@ -1,7 +1,7 @@
 */**/*abi.json
 */**/*compiled.json
 */**/*.txt
-
+*DS*
 */**/.pytest_cache
 */**/__pycache__
 .pytest_cache
