@@ -3,10 +3,8 @@
     <h1>StarkNet Account Abstraction</h1>
     <br>
 </div>
-Welcome! This is an automated workshop that will explain what [account Abstraction](https://perama-v.github.io/cairo/account-abstraction)  is and how you can leverage it to create powerful custom acounts contracts.
-It is aimed at developers that:
 
-- Understand Cairo syntax
+Welcome! This is an automated workshop that will explain what [account Abstraction](https://perama-v.github.io/cairo/account-abstraction)  is and how you can leverage it to create powerful custom acounts contracts.
 
 
 ## Introduction
