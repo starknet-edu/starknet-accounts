@@ -3,7 +3,7 @@
     <h1>StarkNet Account Abstraction</h1>
     <br>
 </div>
-Welcome! This is an automated workshop that will explain what account abstraction is and how you can leverage it to create powerful custom acounts contracts.
+Welcome! This is an automated workshop that will explain what [account Abstraction](https://perama-v.github.io/cairo/account-abstraction)  is and how you can leverage it to create powerful custom acounts contracts.
 It is aimed at developers that:
 
 - Understand Cairo syntax
@@ -20,21 +20,11 @@ StarkNet is still in Alpha. This means that development is ongoing, and the pain
 ​
 
 ### How it works
-Accounts on StarkNet are deployed via an [Account Abstraction](https://perama-v.github.io/cairo/account-abstraction) model.
+TL;DR: accounts on StarkNet are simply regular smart contracts. One caveat is that they MUST have a canonical entrypoint denoted with the selector `__execute__`.
 
-TL;DR:
-
-***accounts on StarkNet are simply contracts***
-
-One caveat for account contract deployments is they must have a canonical entrypoint denoted with the selector `__execute__`.
-
-***...and that's it!***
+Your goal is to design account contracts that pass all the [evaluator.cairo](contracts/evaluator.cairo) checks and collect all the points available on StarkNet(Goerli).
 
 This tutorial consists of various StarkNet `account contracts` and `starknet_py` helper scripts for compilation, deployment, and testing. It also includes an evaluator smart contract, that will check that the code you write in your account contract is correct.
-
-<div align="center">
-    <strong>THE GOAL:<br>Write code that passes all the [evaluator.cairo](contracts/evaluator.cairo) checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
-</div>
 
 To understand what is expected of you, execute the specified python script for each exercise and read the `mission statement` that will appear in your terminal. The exercises will get more difficult and will require you to:
 
