@@ -2,39 +2,108 @@
     <img src="./misc/abstract.jpg" style="width: 350px">
     <h1>StarkNet Account Abstraction</h1>
     <br>
+</div>
+Welcome! This is an automated workshop that will explain what account abstraction is and how you can leverage it to create powerful custom acounts contracts.
+It is aimed at developers that:
 
-|Exercise|Topic|Points|
-|---|---|---|
-|[hello](contracts/hello/hello.cairo)|hello account world|100|
-|[signature_1](contracts/signature/signature_1.cairo)|handling Stark signatures|100|
-|[signature_2](contracts/signature/signature_2.cairo)|handling Stark signatures|200|
-|[signature_3](contracts/signature/signature_3.cairo)|handling Stark signatures|300|
-|[multicall](contracts/multicall/multicall.cairo)|multiple contract call account|500|
-|[multisig](contracts/multisig/multisig.cairo)|multiple signature account|1000|
-|[abstraction](contracts/abstraction/abstraction.cairo)|unique account architecture|2000|
+- Understand Cairo syntax
+
+
+## Introduction
+
+### Disclaimer
+
+​
+Don't expect any kind of benefit from using this, other than learning a bunch of cool stuff about StarkNet, the first general purpose validity rollup on the Ethereum Mainnnet.
+​
+StarkNet is still in Alpha. This means that development is ongoing, and the paint is not dry everywhere. Things will get better, and in the meanwhile, we make things work with a bit of duct tape here and there!
+​
+
+### How it works
+Accounts on StarkNet are deployed via an [Account Abstraction](https://perama-v.github.io/cairo/account-abstraction) model.
+
+TL;DR:
+
+***accounts on StarkNet are simply contracts***
+
+One caveat for account contract deployments is they must have a canonical entrypoint denoted with the selector `__execute__`.
+
+***...and that's it!***
+
+This tutorial consists of various StarkNet `account contracts` and `starknet_py` helper scripts for compilation, deployment, and testing. It also includes an evaluator smart contract, that will check that the code you write in your account contract is correct.
+
+<div align="center">
+    <strong>THE GOAL:<br>Write code that passes all the [evaluator.cairo](contracts/evaluator.cairo) checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
 </div>
 
-# Setup
+To understand what is expected of you, execute the specified python script for each exercise and read the `mission statement` that will appear in your terminal. The exercises will get more difficult and will require you to:
+
+- manipulate the python files
+- write the relevant Cairo code.
+
+These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
+
+
+### Where am I?
+
+This workshop is the sixth in a series aimed at teaching how to build on StarkNet. Checkout out the following:
+
+|Topic|GitHub repo|
+|---|---|
+|Learn how to read Cairo code |[Cairo 101](https://github.com/starknet-edu/starknet-cairo-101)|
+|Deploy and customize an ERC721 NFT|[StarkNet ERC721](https://github.com/starknet-edu/starknet-erc721)|
+|Deploy and customize an ERC20 token|[StarkNet ERC20](https://github.com/starknet-edu/starknet-erc20)|
+|Build a cross layer application|[StarkNet messaging bridge](https://github.com/starknet-edu/starknet-messaging-bridge)|
+|Debug your Cairo contracts easily|[StarkNet debug](https://github.com/starknet-edu/starknet-debug)|
+|Design your own account contract (you are here)|[StarkNet account abstraction](https://github.com/starknet-edu/starknet-accounts)|
+
+### Providing feedback & getting help
+
+Once you are done working on this tutorial, your feedback would be greatly appreciated!
+
+**Please fill out [this form](https://forms.reform.app/starkware/untitled-form-4/kaes2e) to let us know what we can do to make it better.**
+
+​
+And if you struggle to move forward, do let us know! This workshop is meant to be as accessible as possible; we want to know if it's not the case.
+
+​
+Do you have a question? Join our [Discord server](https://discord.gg/5QetpWWPE5), register, and join channel #tutorials-support
+​
+Are you interested in following online workshops about learning how to dev on StarkNet? [Subscribe here](http://eepurl.com/hFnpQ5)
+
+
+### Contributing
+
+This project can be made better and will evolve as StarkNet matures. Your contributions are welcome! Here are things that you can do to help:
+
+- Create a branch with a translation to your language
+- Correct bugs if you find some
+- Add an explanation in the comments of the exercise if you feel it needs more explanation
+- Add exercises showcasing your favorite Cairo feature
+
+​
+​
+## Getting ready to work
+### Step 1 - Clone the repo
+```bash
+git clone https://github.com/starknet-edu/starknet-accounts
+cd starknet-accounts
+```
+### Step 2 - Set up your environment
 
 This tutorial uses the [cairo environment](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet), and [starknet.py](https://github.com/software-mansion/starknet.py):
 
-***install tutorial dependencies***
+***Install the cairo environment***
+
+Set up the environment following [these instructions](https://starknet.io/docs/quickstart.html#quickstart)
+
+***Install tutorial dependencies***
 
 ```bash
-sudo apt install -y libgmp3-dev
-pip3 install ecdsa fastecdsa sympy
 pip3 install rich requests
-pip3 install cairo-lang
 ```
 
-***init cairo environment***
-
-```bash
-python3.7 -m venv ~/cairo_venv
-source ~/cairo_venv/bin/activate
-```
-
-***install starknet dependencies***
+***Install starknet dependencies***
 
 ```bash
 pip3 install --upgrade openzeppelin-cairo-contracts
@@ -42,30 +111,18 @@ pip3 install --upgrade starknet-devnet
 pip3 install --upgrade starknet.py
 ```
 
-***install pytest dependencies***
+***Install pytest dependencies***
 
 ```bash
 pip3 install --upgrade pytest pytest-asyncio
 ```
 
-# Overview
 
-This tutorial consists of various StarkNet `account conracts` and `starknet_py` helper scripts for compilation, deployment, and testing.
+### Step 3 - Set up your devnet
 
-<div align="center">
-    <strong>THE GOAL:<br>pass the 'evaluator.cairo' checks and collect all the points available on StarkNet(Goerli)<br><br></strong>
-</div>
+Transactions take time to complete on [testnet](https://goerli.voyager.online) so you should develop and debug locally first. 
 
-To complete exercises read the `mission statement` at the top of each starknet_py script(also printed to terminal) for instructions. The exercises will get more difficult and will require you to:
-
-- manipulate the python files
-- write the relevant Cairo code.
-
-These tasks will be annotated with the comment `# ACTION ITEM <NUM>`
-
-## Devnet
-
-Transactions take time to complete on [testnet](https://goerli.voyager.online) so you should develop and debug locally first. Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
+Let's try it out with the `hello/hello.cairo` exercise. There are no `# ACTION ITEM`s that need to be completed for this exercise and we can simply test that it works.
 
 ***1) init devnet***
 
@@ -114,11 +171,11 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 }'
 ```
 
-## Testnet
+### Step 4 - Deploying to testnet
 
 When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
-### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
+#### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
 
 <div align="center">
     <img src="./misc/argent.png" style="width: 350px">
@@ -150,7 +207,8 @@ When deploying to testnet fill out the relevant details in the `hints.json` file
     <img src="./misc/hints.png" style="width: 350px">
 </div>
 
-## Fees
+### Step 5 - Accounting for fees
+
 
 Accounts on StarkNet must pay [fees](https://docs.starknet.io/docs/Fees/fee-mechanism) to cover the L1 footprint of their transaction. So the account details you enter must have Goerli ETH(~0.5 ETH) and can be funded either through the [starkgate bridge](https://goerli.starkgate.starknet.io) or [StarkNet Faucet](https://faucet.goerli.starknet.io).
 
@@ -160,7 +218,7 @@ After you have tested your contract locally you can test on `testnet` by passing
 python3 hello/hello.py --testnet
 ```
 
-## Hints
+### Step 6 - Using hints
 
 If you need hints on tutorial solutions you can find them in repository branch named `hints/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
 
@@ -171,41 +229,23 @@ cd hints
 pytest hello.py
 ```
 
-# Walk Through
+## Working on the tutorial
+### Exercise 1 - [Hello](./contracts/hello) 
 
-Accounts on StarkNet are deployed via an [Account Abstraction](https://perama-v.github.io/cairo/account-abstraction) model.
-
-TL;DR:
-
-***accounts on StarkNet are simply contracts***
-
-One caveat for account contract deployments is they must have a canonical entrypoint denoted with the selector `__execute__`.
-
-***...and that's it!***
-
-Lets deploy and test the simplest account contract we can:
+Lets deploy and test the simplest account contract we can, [`hello.cairo`](contracts/hello/hello.cairo):
 
 ```bash
 cd contracts
 python3 hello/hello.py
 ```
 
-The job of an account contract is to execute arbitrary business logic on behalf of a sepcific entity. This is why we see a similar argument pattern for most execute functions:
+The job of an account contract is to execute arbitrary business logic on behalf of a sepcific entity. This is why we see a similar argument pattern for most [execute functions](contracts/hello/hello.cairo#L11).
 
-```bash
-    # contract we wish to execute our transaction on
-    contract_address : felt
-    
-    # entry point of that contract we wish to call
-    selector : felt
+Follow the prompt and collect 100 points.
 
-    # contracts will require varying lengths of calldata so we pass an array
-    calldata_len : felt
-    calldata : felt*
-```
 
-## [Signatures](./contracts/signatures)
-
+### Exercise 2 - [Signatures](./contracts/signatures)
+#### Signature 1
 Unlike Ethereum [EOAs](https://ethereum.org/en/developers/docs/accounts/#externally-owned-accounts-and-key-pairs), StarkNet accounts don't have a hard requirement on being managed by a public/private key pair.
 
 Account abstraction cares more about `who`(i.e. the contract address) rather than `how`(i.e. the signature).
@@ -219,6 +259,10 @@ python3 signature/signature_1.py
 
 The `signature_1` contract has no concept of a public/private keypair. All the signing was done "off-chain" and yet with account abstraction we're still able to operate a functioning account with a populated signature field.
 
+Follow the prompt and collect 100 points.
+
+#### Signature 2 - 200 pts
+
 Let's couple the signing logic more succintly wtih the account:
 
 ***HINT: we have not yet implemented a [nonce](https://ethereum.org/en/developers/docs/accounts/#an-account-examined)***
@@ -230,6 +274,10 @@ python3 signature/signature_2.py
 
 Although we are free to populate the signature field how we please, the StarkNet OS has a specific method for hashing [transaction data](https://docs.starknet.io/docs/Blocks/transactions#transaction-hash-1).
 
+Follow the prompt and collect 200 points.
+
+#### Signature 3 - 300 pts
+
 This transaction hash encompasses all the relevant `tx_info`, and typically the message_hash signed by account contracts. The account owner is thereby acknowledging all of the relevant transaction information:
 
 ```bash
@@ -237,7 +285,9 @@ cd contracts
 python3 signature/signature_3.py
 ```
 
-## [MultiCall](./contracts/multicall)
+Follow the prompt and collect 300 points.
+
+### Exercise 3 - [MultiCall](./contracts/multicall)
 
 Now that we have implemented the vanilla ECDSA signing mechanisms lets see what account abstraction can really do!
 
@@ -254,7 +304,9 @@ cd contracts
 python3 multicall/multicall.py
 ```
 
-## [MultiSig](./contracts/multisig)
+Follow the prompt and collect 500 points.
+
+### Exercise 4 - [MultiSig](./contracts/multisig)
 
 A `multisig` or multiple signature wallet allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
 
@@ -266,8 +318,9 @@ Lets implement a `2/3 multisig` account(i.e. 2 signatures are required out of a 
 cd contracts
 python3 multisig/multisig.py
 ```
+Follow the prompt and collect 1000 points.
 
-## [Abstraction](./contracts/abstraction)
+### Exercise 5 - [Abstraction](./contracts/abstraction)
 
 As StarkNet accounts are simply contracts we can implement any signing mechanism we want. Companies like [Web3Auth](https://medium.com/toruslabs/sign-in-with-starkware-711d48f2dbbd) are using this to create `Sign-In` architectures using your StarkNet account. [JWT](https://github.com/BoBowchan/cairo-jsonwebtoken) token schems are being implemented.
 
@@ -279,3 +332,9 @@ For an example of a unique account architecture we will build a contract that im
 cd contracts
 python3 abstraction/abstraction.py
 ```
+
+Follow the prompt and collect 2000 points.
+
+
+
+
