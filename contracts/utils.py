@@ -142,7 +142,7 @@ async def fund_account(toAddr):
     acc_client, acc_addr = get_account_client()
     if "testnet" in acc_client.net:
         bal = await acc_client.get_balance(data['TESTNET_ETH'])
-        if bal == 0:
+        if bal < data['TRANSFER_AMOUNT']:
             return ""
 
         nonce_payload = data['NONCE_PAYLOAD']
@@ -166,7 +166,7 @@ async def fund_account(toAddr):
 
     else:
         bal = await acc_client.get_balance(data['DEVNET_ETH'])
-        if bal == 0:
+        if bal < data['TRANSFER_AMOUNT']:
             return ""
             
         eth_contract = await Contract.from_address(data['DEVNET_ETH'], acc_client, False)
