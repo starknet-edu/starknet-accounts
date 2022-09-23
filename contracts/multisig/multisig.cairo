@@ -7,27 +7,27 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.bool import TRUE, FALSE
 
-//
+// ///////////////////
 // STRUCTS
-//
+// ///////////////////
 struct Transaction {
     contract_address: felt,
     function_selector: felt,
     calldata_len: felt,
 }
 
-//
+// ///////////////////
 // INTERFACES
-//
+// ///////////////////
 @contract_interface
 namespace IAccount {
     func is_valid_signature(hash: felt, signature_len: felt, signature: felt*) {
     }
 }
 
-//
+// ///////////////////
 // STORAGE VARIABLES
-//
+// ///////////////////
 @storage_var
 func owners(index: felt) -> (owner: felt) {
 }
@@ -64,9 +64,9 @@ func transactions(tx_index: felt) -> (tx: Transaction) {
 func transaction_calldata(tx_index: felt, calldata_index: felt) -> (value: felt) {
 }
 
-//
+// ///////////////////
 // EVENTS
-//
+// ///////////////////
 @event
 func submit(owner: felt, tx_index: felt) {
 }
@@ -79,9 +79,9 @@ func confirm(owner: felt, tx_index: felt) {
 func executed(tx_index: felt) {
 }
 
-//
+// ///////////////////
 // CONSTRUCTOR
-//
+// ///////////////////
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     owners_len: felt, owners: felt*
@@ -93,9 +93,9 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
-//
+// ///////////////////
 // GETTERS
-//
+// ///////////////////
 @view
 func get_confirmations{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     tx_index: felt
@@ -132,9 +132,9 @@ func get_owners{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     return (signers_len=signers_len, signers=signers);
 }
 
-//
+// ///////////////////
 // INTERNAL FUNCTIONS
-//
+// ///////////////////
 func _require_owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     let (caller) = get_caller_address();
     let (index) = owners_map.read(owner=caller);
@@ -199,9 +199,10 @@ func _get_signers{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     return ();
 }
 
-//
+// ///////////////////
 // EXTERNAL FUNCTIONS
-//
+// ///////////////////
+
 //
 // ACTION ITEM 1: implement the ability for a whitelisted signer to submit a tx to the multisig
 //
@@ -212,17 +213,7 @@ func submit_tx{
     alloc_locals;
     _require_owner();
 
-    let (caller) = get_caller_address();
-    let (tx_info) = get_tx_info();
-    IAccount.is_valid_signature(
-        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
-    );
-
-    let (tx_index) = curr_tx_index.read();
-    transactions.write(tx_index, Transaction(contract_address, function_selector, calldata_len));
-    _spread_calldata(tx_index, 0, calldata_len, calldata);
-
-    curr_tx_index.write(tx_index + 1);
+    // CODE HERE
 
     submit.emit(caller, tx_index);
     return ();
@@ -238,25 +229,7 @@ func confirm_tx{
     alloc_locals;
     _require_owner();
 
-    let (tx: Transaction) = transactions.read(tx_index);
-    assert_not_zero(tx.contract_address);
-
-    let (num_confirmations) = tx_confirms.read(tx_index);
-    let (executed) = tx_is_executed.read(tx_index);
-    assert executed = FALSE;
-
-    let (caller) = get_caller_address();
-    let (tx_info) = get_tx_info();
-
-    IAccount.is_valid_signature(
-        caller, tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
-    );
-
-    let (confirmed) = has_confirmed.read(tx_index, caller);
-    assert confirmed = FALSE;
-
-    tx_confirms.write(tx_index, num_confirmations + 1);
-    has_confirmed.write(tx_index, caller, TRUE);
+    // CODE HERE
 
     confirm.emit(caller, tx_index);
     return ();

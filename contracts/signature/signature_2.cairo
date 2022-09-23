@@ -20,17 +20,16 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return ();
 }
 
+//
+// ACTION ITEM 1: verify the provided signature with std library `verify_ecdsa_signature`
+// - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/signature.cairo
+//
 func _is_valid_signature{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr, ecdsa_ptr: SignatureBuiltin*
 }(hash: felt, signature_len: felt, signature: felt*) -> () {
     let (_public_key) = public_key.read();
 
-    let sig_r = signature[0];
-    let sig_s = signature[1];
-
-    verify_ecdsa_signature(
-        message=hash, public_key=_public_key, signature_r=sig_r, signature_s=sig_s
-    );
+    // CODE HERE
 
     return ();
 }
@@ -39,10 +38,6 @@ func _is_valid_signature{
 // GETTERS
 // ///////////////////
 
-//
-// ACTION ITEM 1: verify the provided signature with std library `verify_ecdsa_signature`
-// - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/signature.cairo
-//
 @view
 func get_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     public_key: felt

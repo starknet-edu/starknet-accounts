@@ -52,22 +52,17 @@ async def main():
     hash = invoke_tx_hash(sig2_addr, calldata, nonce)
     signature = sign(hash, private_key)
     
-    invoke = InvokeFunction(
-      calldata=calldata,
-      signature=[*signature],
-      max_fee=data['MAX_FEE'],
-      version=1,
-      nonce=nonce,
-      contract_address=sig2_addr,
-    )
+    # CODE HERE
 
     resp = await sig2.send_transaction(invoke)
     await print_n_wait(client, resp)
 
+    #
+    # ACTION ITEM 3: call twice to increment the nonce
+    #
     nonce = await client.get_contract_nonce(sig2_addr)
     
-    hash = invoke_tx_hash(sig2_addr, calldata, nonce)
-    signature = sign(hash, private_key)
+    # CODE HERE
     
     invoke = InvokeFunction(
       calldata=calldata,

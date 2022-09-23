@@ -140,22 +140,11 @@ async def main():
     await print_n_wait(client, resp)
 
     #
-    # Execute a submitted confirmed transaction
+    # ACTION ITEM 3: Execute a submitted confirmed transaction
     #
     nonce = await client.get_contract_nonce(sig1_addr)
 
-    exec_calldata=[multi_addr, execute_selector, 1, eventData[1]]
-    exec_hash = invoke_tx_hash(sig1_addr, exec_calldata, nonce)
-    exec_signature = sign(exec_hash, private_key)
-    
-    invoke = InvokeFunction(
-      calldata=exec_calldata,
-      signature=[*exec_signature],
-      max_fee=data['MAX_FEE'],
-      version=1,
-      nonce=nonce,
-      contract_address=sig1_addr,
-    )
+    # CODE HERE
 
     resp = await sig1.send_transaction(invoke)
     await print_n_wait(client, resp)

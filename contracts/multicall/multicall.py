@@ -42,15 +42,11 @@ async def main():
     nonce = await client.get_contract_nonce(multicall_addr)
 
     #
-    # ACTION ITEM 2: format the 'CalldataArray'
+    # ACTION ITEM 3: format the calldata in a way your Account is expecting
     #
     inner_calldata = [reward_account, reward_account, reward_account]
     calldata = [
-        3,
-        evaluator_address, selector, 0, 1,
-        evaluator_address, selector, 1, 1,
-        evaluator_address, selector, 2, 1,
-        len(inner_calldata), *inner_calldata
+        # CODE HERE
     ]
 
     hash = invoke_tx_hash(multicall_addr, calldata, nonce)

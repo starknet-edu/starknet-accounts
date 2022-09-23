@@ -32,11 +32,15 @@ func _is_valid_eth_signature{
     let (_public_key) = ethereum_address.read();
     let (__fp__, _) = get_fp_and_pc();
 
-    let sig_v: felt = signature[0];
-    let sig_r: Uint256 = Uint256(low=signature[1], high=signature[2]);
-    let sig_s: Uint256 = Uint256(low=signature[3], high=signature[4]);
-    let (high, low) = split_felt(hash);
-    let msg_hash: Uint256 = Uint256(low=low, high=high);
+    //
+    // ACTION ITEM 1: format the signature and msg_hash so it can be verified vi `verify_eth_signature_uiunt256`
+    // - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/cairo_secp/signature.cairo
+    //
+    let sig_v: felt = // CODE HERE
+    let sig_r: Uint256 = // CODE HERE
+    let sig_s: Uint256 = // CODE HERE
+    let (high, low) = // CODE HERE
+    let msg_hash: Uint256 = // CODE HERE
 
     let (local keccak_ptr: felt*) = alloc();
 

@@ -24,12 +24,12 @@ async def main():
     #
     # ACTION ITEM 1: find the first EIP number discussing account abstraction
     #
-    INPUT_1 = 2938
+    INPUT_1 = 0
 
     #
     # ACTION ITEM 2: find the second EIP number discussing account abstraction
     #
-    INPUT_2 = 4337
+    INPUT_2 = 0
     blue.print(f"First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_1}")
     blue.print(f"Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_2}\n")
 

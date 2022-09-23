@@ -37,9 +37,6 @@ async def main():
     # Format calldata
     # 
 
-    #
-    # ACTION ITEM 3: call @view 'get_nonce' to include in tx signature
-    #
     calldata = [evaluator_address, get_selector_from_name("validate_signature_3"), 1, reward_account]
 
     #
@@ -49,9 +46,16 @@ async def main():
 
     hash = invoke_tx_hash(sig3_addr, calldata, nonce)
 
-    signature = pk.sign_msg_hash((hash).to_bytes(32, byteorder="big"))
-    sig_r = to_uint(signature.r)
-    sig_s = to_uint(signature.s)
+    #
+    # ACTION ITEM 2: sign the starknet transaction w/ secp256k1
+    #
+    signature # CODE HERE
+
+    #
+    # ACTION ITEM 3: format the signature so your account can verify
+    #
+    sig_r # CODE HERE
+    sig_s # CODE HERE
 
     invoke = InvokeFunction(
       calldata=calldata,

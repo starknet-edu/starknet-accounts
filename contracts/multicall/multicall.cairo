@@ -34,11 +34,12 @@ func _from_call_array_to_call{syscall_ptr: felt*}(
         return ();
     }
 
+    //
+    // ACTION ITEM 1: format the calldata into individual calls
+    // - reference: https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/account/library.cairo
+    //
     assert [calls] = Call(
-        to=[call_array].to,
-        selector=[call_array].selector,
-        calldata_len=[call_array].data_len,
-        calldata=calldata + [call_array].data_offset
+        // CODE HERE
         );
     _from_call_array_to_call(
         call_array_len - 1, call_array + AccountCallArray.SIZE, calldata, calls + Call.SIZE
@@ -56,11 +57,12 @@ func _execute_list{syscall_ptr: felt*}(calls_len: felt, calls: Call*, response: 
     }
 
     let this_call: Call = [calls];
+    //
+    // ACTION ITEM 2: recursively call the contracts
+    // - reference: https://github.com/OpenZeppelin/cairo-contracts/blob/main/src/openzeppelin/account/library.cairo
+    //
     let res = call_contract(
-        contract_address=this_call.to,
-        function_selector=this_call.selector,
-        calldata_size=this_call.calldata_len,
-        calldata=this_call.calldata,
+        // CODE HERE
     );
 
     memcpy(response, res.retdata, res.retdata_size);
