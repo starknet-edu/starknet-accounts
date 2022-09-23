@@ -15,11 +15,11 @@ with open("./config.json", "r") as f:
 
 async def main():
     blue_strong.print("Your mission:")
-    blue.print("\t 1) implement account contract interface 'get_nonce'")
-    blue.print("\t 2) implement account contract interface 'get_signer'")
-    blue.print("\t 3) deploy account contract")
-    blue.print("\t 4) sign calldata")
-    blue.print("\t 5) invoke check\n")
+    blue.print("\t 1) implement account contract interface 'is_valid_eth_signature'")
+    blue.print("\t 2) deploy account contract with with '__validate__', '__validate_declare__', '__execute__' entrypoints")
+    blue.print("\t 3) sign the calldata using secp256k1 curve")
+    blue.print("\t 4) invoke the validator check with the signature in the tx_info field")
+    blue.print("\t 5) call until you hit paydirt\n")
 
     pk = eth_keys.keys.PrivateKey(b'\x01' * 32)
 

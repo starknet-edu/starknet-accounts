@@ -69,6 +69,8 @@ async def main():
 
     validator_selector = get_selector_from_name("validate_multisig")
     submit_selector = get_selector_from_name("submit_tx")
+    confirm_selector = get_selector_from_name("confirm_tx")
+    execute_selector = get_selector_from_name("execute")
 
     #
     # ACTION ITEM 3: submit a transaction to the multisig
@@ -76,9 +78,9 @@ async def main():
     nonce = await client.get_contract_nonce(sig1_addr)
 
     inner_calldata=[evaluator_address, validator_selector, 2, 1, reward_account]
-    outer_calldata=[multi_addr, submit_selector, nonce, len(inner_calldata), *inner_calldata]
+    outer_calldata=[multi_addr, submit_selector, len(inner_calldata), *inner_calldata]
 
-    hash = invoke_tx_hash(sig1_addr, outer_calldata)
+    hash = invoke_tx_hash(sig1_addr, outer_calldata, nonce)
     sub_signature = sign(hash, private_key)
 
     invoke = InvokeFunction(
@@ -92,68 +94,70 @@ async def main():
 
     resp = await sig1.send_transaction(invoke)
     eventData = await print_n_wait(client, resp)
-    print("THIS: ", eventData)
 
-    # eventData = await print_n_wait(client, sub_invocation)
+    #
+    # ACTION ITEM 4: provide first tx confirmation
+    #
 
-    # #
-    # # ACTION ITEM 4: provide first tx confirmation
-    # #
-    # confirm_selector = get_selector_from_name("confirm_tx")
+    nonce = await client.get_contract_nonce(sig2_addr)
 
-    # (nonce_2, ) = await sig2.functions["get_nonce"].call()
-    # conf_calldata=[multi_addr, confirm_selector, nonce_2, 1, eventData[1]]
-    # conf_hash = invoke_tx_hash(sig2_addr, conf_calldata)
+    conf_calldata=[multi_addr, confirm_selector, 1, eventData[1]]
+    conf_hash = invoke_tx_hash(sig2_addr, conf_calldata, nonce)
 
-    # conf_signature = sign(conf_hash, private_key_2)
+    conf_signature = sign(conf_hash, private_key_2)
 
-    # conf_prepared = sig2.functions["__execute__"].prepare(
-    #     contract_address=multi_addr,
-    #     selector=confirm_selector,
-    #     nonce=nonce_2,
-    #     calldata_len=2,
-    #     calldata=[eventData[1]])
-    # conf_invocation = await conf_prepared.invoke(signature=conf_signature, max_fee=data['MAX_FEE'])
+    invoke = InvokeFunction(
+      calldata=conf_calldata,
+      signature=[*conf_signature],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=sig2_addr,
+    )
 
-    # await print_n_wait(client, conf_invocation)
+    resp = await sig2.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
-    # #
-    # # Provide second tx confirmation
-    # #
-    # (nonce_3, ) = await sig3.functions["get_nonce"].call()
-    # conf_2_calldata=[multi_addr, confirm_selector, nonce_3, 1, eventData[1]]
+    #
+    # Provide second tx confirmation
+    #
+    nonce = await client.get_contract_nonce(sig3_addr)
 
-    # conf_2_hash = invoke_tx_hash(sig3_addr, conf_2_calldata)
+    conf_2_calldata=[multi_addr, confirm_selector, 1, eventData[1]]
+    conf_2_hash = invoke_tx_hash(sig3_addr, conf_2_calldata, nonce)
+    conf_2_signature = sign(conf_2_hash, private_key_3)
 
-    # conf_2_signature = sign(conf_2_hash, private_key_3)
+    invoke = InvokeFunction(
+      calldata=conf_calldata,
+      signature=[*conf_2_signature],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=sig3_addr,
+    )
 
-    # conf_2_prepared = sig3.functions["__execute__"].prepare(
-    #     contract_address=multi_addr,
-    #     selector=confirm_selector,
-    #     nonce=nonce_3,
-    #     calldata_len=1,
-    #     calldata=[eventData[1]])
-    # conf_2_invocation = await conf_2_prepared.invoke(signature=conf_2_signature, max_fee=data['MAX_FEE'])
+    resp = await sig3.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
-    # await print_n_wait(client, conf_2_invocation)
+    #
+    # Execute a submitted confirmed transaction
+    #
+    nonce = await client.get_contract_nonce(sig1_addr)
 
-    # #
-    # # Execute a submitted confirmed transaction
-    # #
-    # execute_selector = get_selector_from_name("__execute__")
-    # exec_calldata=[multi_addr, execute_selector, nonce_1+1, 1, eventData[1]]
-
-    # exec_hash = invoke_tx_hash(sig1_addr, exec_calldata)
-    # exec_signature = sign(exec_hash, private_key)
+    exec_calldata=[multi_addr, execute_selector, 1, eventData[1]]
+    exec_hash = invoke_tx_hash(sig1_addr, exec_calldata, nonce)
+    exec_signature = sign(exec_hash, private_key)
     
-    # exec_prepared = sig1.functions["__execute__"].prepare(
-    #     contract_address=multi_addr,
-    #     selector=execute_selector,
-    #     nonce=nonce_1+1,
-    #     calldata_len=1,
-    #     calldata=[eventData[1]])
-    # exec_invocation = await exec_prepared.invoke(signature=exec_signature, max_fee=data['MAX_FEE'])
+    invoke = InvokeFunction(
+      calldata=exec_calldata,
+      signature=[*exec_signature],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=sig1_addr,
+    )
 
-    # await print_n_wait(client, exec_invocation)
+    resp = await sig1.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
 asyncio.run(main())

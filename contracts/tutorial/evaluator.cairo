@@ -41,16 +41,6 @@ const REWARDS_BASE = 1000000000000000000;
 const ETHEREUM_ADDRESS = 0x1a642f0e3c3af545e7acbd38b07251b3990914f1;
 
 // ///////////////////
-// STRUCTS
-// ///////////////////
-struct TestSignature {
-    hash: felt,
-    pub: felt,
-    sig_r: felt,
-    sig_s: felt,
-}
-
-// ///////////////////
 // INTERFACES
 // ///////////////////
 @contract_interface
@@ -74,9 +64,6 @@ namespace IMultiSig {
     }
 
     func get_owner_confirmed(tx_index: felt, owner: felt) -> (res: felt) {
-    }
-
-    func get_test_sig() -> (value: TestSignature) {
     }
 }
 
@@ -391,8 +378,6 @@ func validate_multisig{
     assert filler = 1;
 
     let (caller) = get_caller_address();
-    let (test_sig: TestSignature) = IMultiSig.get_test_sig(contract_address=caller);
-    _is_valid_signature_full(test_sig.hash, test_sig.pub, test_sig.sig_r, test_sig.sig_s);
 
     let (num_confirms) = IMultiSig.get_confirmations(contract_address=caller, tx_index=input);
     let (num_owners) = IMultiSig.get_num_owners(contract_address=caller);

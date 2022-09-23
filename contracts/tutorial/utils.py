@@ -33,14 +33,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--testnet', action='store_true')
 args = parser.parse_args()
 
-def invoke_tx_hash(addr, calldata, nonce):
+def invoke_tx_hash(addr, calldata, nonce, selector=0):
     exec_selector = get_selector_from_name("__execute__")
     return calculate_transaction_hash_common(
         tx_hash_prefix=TransactionHashPrefix.INVOKE,
         version=data['VERSION'],
         contract_address=addr,
-        entry_point_selector=0,
-        # entry_point_selector=exec_selector,
+        entry_point_selector=selector,
         calldata=calldata,
         max_fee=data['MAX_FEE'],
         chain_id=TESTNET_ID,
@@ -62,7 +61,7 @@ async def print_n_wait(client, sent_tx_response):
         green.print(f"Transaction Hash: 0x{hex(sent_tx_response.transaction_hash)}")
         green.print(f"Tx Results: {res.status}")
         for ev in res.events:
-            if ev.keys[0] == SUBMIT_TX and len(res.events) == 1:
+            if ev.keys[0] == SUBMIT_TX:
                 return ev.data
             if ev.keys[0] == PAYDAY:
                 green_bold.print(f"Payday Results: PAYDAY!!!\n")
@@ -94,7 +93,7 @@ def contract_cache(env, contract, addr):
 
 async def compile_deploy(client, contract="", args=[], salt=0, account=False):
     hit, cached, cached_addr = await contract_cache_check(client, contract)
-    if hit and contract != "multisig/signature_basic":
+    if hit and "multisig" not in contract:
         if account:
             acc = AccountClient(
                 client=client,
