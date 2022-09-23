@@ -178,9 +178,9 @@ After you have tested your contract locally you can test on `testnet` by passing
 python3 hello/hello.py --testnet
 ```
 
-### Step 6 - Using hints
+### Step 6 - Using `answers`
 
-If you need hints on tutorial solutions you can find them in repository branch named `hints/all`. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
+If you need hints on tutorial solutions you can find them in the `answers` branch. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
 
 ## Working on the tutorial
 
