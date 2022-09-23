@@ -1,8 +1,8 @@
 {
     "http://localhost:5050": {},
     "testnet": {
-        "evaluator": "0x04f3bfc2034e30bd25f43502e3c45d3ebe03f9d3060b4c84003690b9a68a41e1",
-        "token/TDERC20": "0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f",
-        "tutorial/player_registry": "0x045f8c0488cbe3fca19b9cc5ad88468b52b30195e1b73a0b3afbe98e5dfe1807"
+        "tutorial/evaluator": "0x01bb626c068310ba990db71f7d51fe999c37053d42470aee35698577a44baec6",
+        "tutorial/player_registry": "0x045f8c0488cbe3fca19b9cc5ad88468b52b30195e1b73a0b3afbe98e5dfe1807",
+        "tutorial/token/TDERC20": "0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f"
     }
 }
