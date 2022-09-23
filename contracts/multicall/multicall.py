@@ -2,14 +2,15 @@ import sys
 import json
 import asyncio
 
-sys.path.append('./')
+sys.path.append('./tutorial')
 
 from console import blue_strong, blue, red
-from utils import deploy_account, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
+from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
+from starknet_py.net.models import InvokeFunction
 
-with open("./hints.json", "r") as f:
+with open("./config.json", "r") as f:
   data = json.load(f)
 
 async def main():
@@ -24,7 +25,7 @@ async def main():
 
     client = get_client()
 
-    multicall, multicall_addr = await deploy_account(client=client, contract_path=data['MULTICALL'], constructor_args=[stark_key])
+    multicall, multicall_addr = await compile_deploy(client=client, contract=data['MULTICALL'], args=[stark_key], account=True)
     
     reward_account = await fund_account(multicall_addr)
     if reward_account == "":
@@ -33,61 +34,38 @@ async def main():
 
     _, evaluator_address = await get_evaluator(client)
     
-
+    #
+    # Format calldata
+    # 
     selector = get_selector_from_name("validate_multicall")
     
-    #
-    # ACTION ITEM 1: format the 'CallArray'
-    #
-    call_array = [
-        {
-            "to": evaluator_address,
-            "selector": selector,
-            "data_offset": 0,
-            "data_len": 1
-        },
-        {
-            "to": evaluator_address,
-            "selector": selector,
-            "data_offset": 1,
-            "data_len": 1
-        },
-        {
-            "to": evaluator_address,
-            "selector": selector,
-            "data_offset": 2,
-            "data_len": 1
-        },
-    ]
-    
-    (nonce, ) = await multicall.functions["get_nonce"].call()
+    nonce = await client.get_contract_nonce(multicall_addr)
 
     #
     # ACTION ITEM 2: format the 'CalldataArray'
     #
     inner_calldata = [reward_account, reward_account, reward_account]
     calldata = [
-        nonce, len(call_array),
+        3,
         evaluator_address, selector, 0, 1,
         evaluator_address, selector, 1, 1,
         evaluator_address, selector, 2, 1,
         len(inner_calldata), *inner_calldata
     ]
 
-    hash = invoke_tx_hash(multicall_addr, calldata)
+    hash = invoke_tx_hash(multicall_addr, calldata, nonce)
     signature = sign(hash, private_key)
 
-    prepared = multicall.functions["__execute__"].prepare(
-        nonce=nonce,
-        call_array_len=len(call_array),
-        call_array=call_array,
-        calldata_len=len(inner_calldata),
-        calldata=inner_calldata,
+    invoke = InvokeFunction(
+      calldata=calldata,
+      signature=[*signature],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=multicall_addr,
     )
 
-    invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
-
-    await print_n_wait(client, invocation)
-
+    resp = await multicall.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
 asyncio.run(main())

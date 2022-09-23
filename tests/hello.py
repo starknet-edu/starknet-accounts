@@ -8,7 +8,7 @@ from starkware.starknet.public.abi import get_selector_from_name
 
 HELLO_FILE = os.path.join("../contracts/hello", "hello.cairo")
 
-with open("../contracts/hints.json", "r") as f:
+with open("../contracts/config.json", "r") as f:
   data = json.load(f)
 
 @pytest.fixture

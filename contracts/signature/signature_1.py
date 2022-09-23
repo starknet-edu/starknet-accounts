@@ -1,23 +1,23 @@
-import os
 import asyncio
 import sys
 import json
 
-sys.path.append('./')
+sys.path.append('./tutorial')
 
 from console import blue_strong, blue, red
-from utils import deploy_account, print_n_wait, get_evaluator, fund_account, get_client
+from utils import compile_deploy, print_n_wait, get_evaluator, fund_account, get_client
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
+from starknet_py.net.models import InvokeFunction
 
-with open("./hints.json", "r") as f:
+with open("./config.json", "r") as f:
   data = json.load(f)
 
 async def main():
     blue_strong.print("Your mission:")
     blue.print("\t 1) find the first two EIP numbers discussing account abstraction")
-    blue.print("\t 2) deploy account contract with an '__execute__' entrypoint")
+    blue.print("\t 2) deploy account contract with '__validate__', '__validate_declare__', '__execute__' entrypoints")
     blue.print("\t 3) use the private key to sign the values using the Stark curve")
     blue.print("\t 4) invoke the validator check with the signature in the tx_info field\n")
 
@@ -35,7 +35,7 @@ async def main():
 
     client = get_client()
 
-    sig1, sig1_addr = await deploy_account(client, data['SIGNATURE_1'])
+    sig1, sig1_addr = await compile_deploy(client=client, contract=data['SIGNATURE_1'], account=True)
 
     reward_account = await fund_account(sig1_addr)
     if reward_account == "":
@@ -44,19 +44,30 @@ async def main():
       
     _, evaluator_address = await get_evaluator(client)
     
+    #
+    # Format calldata
+    #  
     hash = pedersen_hash(INPUT_1, INPUT_2)
     hash_final = pedersen_hash(hash, sig1_addr)
     signature = sign(hash_final, data['PRIVATE_KEY'])
 
-    prepared = sig1.functions["__execute__"].prepare(
-        contract_address=evaluator_address,
-        selector=get_selector_from_name("validate_signature_1"),
-        calldata_len=3,
-        calldata=[INPUT_1, INPUT_2, reward_account])
-    
-    invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
+    calldata = [evaluator_address, get_selector_from_name("validate_signature_1"), 3, INPUT_1, INPUT_2, reward_account]
 
-    await print_n_wait(client, invocation)
+    #
+    # Submit the invoke transaction
+    #
+    nonce = await client.get_contract_nonce(sig1_addr)
 
+    invoke = InvokeFunction(
+      calldata=calldata,
+      signature=[*signature],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=sig1_addr,
+    )
+
+    resp = await sig1.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
 asyncio.run(main())

@@ -3,15 +3,15 @@
     <h1>StarkNet Account Abstraction</h1>
     <br>
 
-|Exercise|Topic|Points|
-|---|---|---|
-|[hello](contracts/hello/hello.cairo)|hello account world|100|
-|[signature_1](contracts/signature/signature_1.cairo)|handling Stark signatures|100|
-|[signature_2](contracts/signature/signature_2.cairo)|handling Stark signatures|200|
-|[signature_3](contracts/signature/signature_3.cairo)|handling Stark signatures|300|
-|[multicall](contracts/multicall/multicall.cairo)|multiple contract call account|500|
-|[multisig](contracts/multisig/multisig.cairo)|multiple signature account|1000|
-|[abstraction](contracts/abstraction/abstraction.cairo)|unique account architecture|2000|
+| Exercise                                               | Topic                          | Points |
+| ------------------------------------------------------ | ------------------------------ | ------ |
+| [hello](contracts/hello/hello.cairo)                   | hello account world            | 100    |
+| [signature_1](contracts/signature/signature_1.cairo)   | handling Stark signatures      | 100    |
+| [signature_2](contracts/signature/signature_2.cairo)   | handling Stark signatures      | 200    |
+| [signature_3](contracts/signature/signature_3.cairo)   | handling Stark signatures      | 300    |
+| [multicall](contracts/multicall/multicall.cairo)       | multiple contract call account | 500    |
+| [multisig](contracts/multisig/multisig.cairo)          | multiple signature account     | 1000   |
+| [abstraction](contracts/abstraction/abstraction.cairo) | unique account architecture    | 2000   |
 </div>
 
 # Setup
@@ -101,7 +101,7 @@ There were no `action items` for you to complete so you should see a succesfull 
 
 - "entry_point_selector" = felt representation of selector "balanceOf" (no change required)
 
-- "calldata" = "hints.json" --> "DEVNET_ACCOUNT" --> "ADDRESS"
+- "calldata" = "config.json" --> "DEVNET_ACCOUNT" --> "ADDRESS"
 
 ```bash
 curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contract' \
@@ -116,7 +116,7 @@ curl --location --request POST 'http://localhost:5000/feeder_gateway/call_contra
 
 ## Testnet
 
-When deploying to testnet fill out the relevant details in the `hints.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
+When deploying to testnet fill out the relevant details in the `config.json` file under `TESTNET_ACCOUNT` for your StarkNet account to transfer fees and receive rewards.
 
 ### [Argent-X](https://chrome.google.com/webstore/detail/argent-x/dlcobpjiigpikoobohmabehhmhfoodbb) Example
 
@@ -127,14 +127,14 @@ When deploying to testnet fill out the relevant details in the `hints.json` file
 ***ADDRESS***
 
 - From the example wallet above you can copy the address(`0x0742B5662...6476f8f`)
-- Paste the felt representation in the `hints.json` `TESTNET_ACCOUNT` -> `ADDRESS`
+- Paste the felt representation in the `config.json` `TESTNET_ACCOUNT` -> `ADDRESS`
 - To get the felt represenation you can paste the address in this [conversion tool](https://util.turbofish.co).
 
 ***PRIVATE***
 
 - Select the three vertical dots to display the wallet options
 - Select `Export private key`
-- Copy the private key from this screen and paste it in `hints.json` `TESTNET_ACCOUNT` -> `PRIVATE`.
+- Copy the private key from this screen and paste it in `config.json` `TESTNET_ACCOUNT` -> `PRIVATE`.
 
 ***PUBLIC***
 
@@ -143,9 +143,9 @@ When deploying to testnet fill out the relevant details in the `hints.json` file
 - From the Voyager Block Explorer select the `READ Contract` -> `IMPLEMENTATION` tab
 - Drop down the `get_signer` selector
 - Select `Decimal` query
-- Copy the public key from this screen and paste it in `hints.json` `TESNET_ACCOUNT` -> `PUBLIC`
+- Copy the public key from this screen and paste it in `config.json` `TESNET_ACCOUNT` -> `PUBLIC`
 
-***Example `hints.json`***
+***Example `config.json`***
 <div align="center">
     <img src="./misc/hints.png" style="width: 350px">
 </div>

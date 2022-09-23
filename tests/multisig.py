@@ -9,7 +9,7 @@ from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import sign
 from starkware.crypto.signature.signature import private_to_stark_key
 
-with open("../contracts/hints.json", "r") as f:
+with open("../contracts/config.json", "r") as f:
   data = json.load(f)
 
 # The path to the contract source code.

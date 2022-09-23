@@ -1,16 +1,16 @@
 import sys
 import json
 import asyncio
+import eth_keys
 
-sys.path.append('./')
+sys.path.append('./tutorial')
 
 from console import blue_strong, blue, red
-from utils import deploy_account, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
+from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client, to_uint
 from starkware.starknet.public.abi import get_selector_from_name
-from starkware.crypto.signature.signature import private_to_stark_key, sign
-from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
+from starknet_py.net.models import InvokeFunction
 
-with open("./hints.json", "r") as f:
+with open("./config.json", "r") as f:
   data = json.load(f)
 
 async def main():
@@ -21,12 +21,11 @@ async def main():
     blue.print("\t 4) sign calldata")
     blue.print("\t 5) invoke check\n")
 
-    private_key = data['PRIVATE_KEY']
-    stark_key = private_to_stark_key(private_key)
+    pk = eth_keys.keys.PrivateKey(b'\x01' * 32)
 
     client = get_client()
 
-    sig3, sig3_addr = await deploy_account(client=client, contract_path=data['SIGNATURE_3'], constructor_args=[stark_key])
+    sig3, sig3_addr = await compile_deploy(client=client, contract=data['SIGNATURE_3'], args=[data['ETHEREUM_ADDRESS']], account=True)
 
     reward_account = await fund_account(sig3_addr)
     if reward_account == "":
@@ -34,29 +33,36 @@ async def main():
       return
       
     _, evaluator_address = await get_evaluator(client)
-    
+    #
+    # Format calldata
+    # 
+
     #
     # ACTION ITEM 3: call @view 'get_nonce' to include in tx signature
     #
-    (nonce, ) = await sig3.functions["get_nonce"].call()
-    selector = get_selector_from_name("validate_signature_3")
-    calldata = [evaluator_address, selector, 2, nonce, reward_account]
-
-    hash = invoke_tx_hash(sig3_addr, calldata)
-    hash_final = pedersen_hash(hash, nonce)
-    signature = sign(hash_final, private_key)
+    calldata = [evaluator_address, get_selector_from_name("validate_signature_3"), 1, reward_account]
 
     #
-    # ACTION ITEM 4: provide expected calldata
+    # Submit the invoke transaction
     #
-    prepared = sig3.functions["__execute__"].prepare(
-        contract_address=evaluator_address,
-        selector=selector,
-        calldata_len=2,
-        calldata=[nonce, reward_account])
-    
-    invocation = await prepared.invoke(signature=signature, max_fee=data['MAX_FEE'])
+    nonce = await client.get_contract_nonce(sig3_addr)
 
-    await print_n_wait(client, invocation)
+    hash = invoke_tx_hash(sig3_addr, calldata, nonce)
+
+    signature = pk.sign_msg_hash((hash).to_bytes(32, byteorder="big"))
+    sig_r = to_uint(signature.r)
+    sig_s = to_uint(signature.s)
+
+    invoke = InvokeFunction(
+      calldata=calldata,
+      signature=[signature.v, *sig_r, *sig_s],
+      max_fee=data['MAX_FEE'],
+      version=1,
+      nonce=nonce,
+      contract_address=sig3_addr,
+    )
+
+    resp = await sig3.send_transaction(invoke)
+    await print_n_wait(client, resp)
 
 asyncio.run(main())

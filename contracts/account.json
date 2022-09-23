@@ -1,5 +1,5 @@
 {
-    "http://localhost:5000": {},
+    "http://localhost:5050": {},
     "testnet": {
         "evaluator": "0x04f3bfc2034e30bd25f43502e3c45d3ebe03f9d3060b4c84003690b9a68a41e1",
         "token/TDERC20": "0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f",

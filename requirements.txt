@@ -1,7 +1,7 @@
 rich 
 requests
 openzeppelin-cairo-contracts
-starknet-devnet==0.2.5
-starknet.py==0.3.4a0
+starknet-devnet
+starknet.py
 pytest 
 pytest-asyncio

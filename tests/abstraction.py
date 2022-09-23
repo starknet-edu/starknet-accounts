@@ -8,7 +8,7 @@ from starkware.starknet.testing.starknet import Starknet
 from starkware.starknet.testing.contract import StarknetContract
 from starkware.starknet.public.abi import get_selector_from_name
 
-with open("../contracts/hints.json", "r") as f:
+with open("../contracts/config.json", "r") as f:
   data = json.load(f)
 
 SHIFT = 86 
