@@ -38,11 +38,6 @@ func _is_valid_signature{
 // ///////////////////
 // GETTERS
 // ///////////////////
-
-//
-// ACTION ITEM 1: verify the provided signature with std library `verify_ecdsa_signature`
-// - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/signature.cairo
-//
 @view
 func get_public_key{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     public_key: felt

@@ -73,7 +73,7 @@ async def main():
     execute_selector = get_selector_from_name("execute")
 
     #
-    # ACTION ITEM 3: submit a transaction to the multisig
+    # Submit a transaction to the multisig
     #
     nonce = await client.get_contract_nonce(sig1_addr)
 
@@ -96,7 +96,7 @@ async def main():
     eventData = await print_n_wait(client, resp)
 
     #
-    # ACTION ITEM 4: provide first tx confirmation
+    # Provide first tx confirmation
     #
 
     nonce = await client.get_contract_nonce(sig2_addr)

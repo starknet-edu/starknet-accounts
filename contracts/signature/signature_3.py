@@ -37,9 +37,6 @@ async def main():
     # Format calldata
     # 
 
-    #
-    # ACTION ITEM 3: call @view 'get_nonce' to include in tx signature
-    #
     calldata = [evaluator_address, get_selector_from_name("validate_signature_3"), 1, reward_account]
 
     #

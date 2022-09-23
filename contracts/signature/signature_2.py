@@ -41,11 +41,7 @@ async def main():
     calldata = [evaluator_address, get_selector_from_name("validate_signature_2"), 1, reward_account]
 
     #
-    # Submit the invoke transaction
-    #
-
-    #
-    # ACTION ITEM 2: provide tx signature via starknet_py
+    # Provide tx signature via starknet_py
     #
     nonce = await client.get_contract_nonce(sig2_addr)
     

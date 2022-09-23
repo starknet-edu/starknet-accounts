@@ -42,7 +42,7 @@ async def main():
     nonce = await client.get_contract_nonce(multicall_addr)
 
     #
-    # ACTION ITEM 2: format the 'CalldataArray'
+    # Format the 'CalldataArray'
     #
     inner_calldata = [reward_account, reward_account, reward_account]
     calldata = [

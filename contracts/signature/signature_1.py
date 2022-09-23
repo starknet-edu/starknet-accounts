@@ -22,12 +22,12 @@ async def main():
     blue.print("\t 4) invoke the validator check with the signature in the tx_info field\n")
 
     #
-    # ACTION ITEM 1: find the first EIP number discussing account abstraction
+    # The first EIP number discussing account abstraction
     #
     INPUT_1 = 2938
 
     #
-    # ACTION ITEM 2: find the second EIP number discussing account abstraction
+    # The second EIP number discussing account abstraction
     #
     INPUT_2 = 4337
     blue.print(f"First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_1}")
