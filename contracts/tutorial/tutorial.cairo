@@ -74,7 +74,7 @@ func has_validated_exercise{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
 ) -> (has_validated_exercise: felt) {
     let (_players_registry) = players_registry.read();
     let (_workshop_id) = workshop_id.read();
-    let (has_validated) = IPlayerRegistry.has_validated_exercise(
+    let (has_validated) = IPlayerRegistry.check_validated_exercise(
         contract_address=_players_registry,
         account=account,
         workshop=_workshop_id,
@@ -133,7 +133,7 @@ func validate_exercise{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 ) {
     let (_players_registry) = players_registry.read();
     let (_workshop_id) = workshop_id.read();
-    let (has_validated) = IPlayerRegistry.has_validated_exercise(
+    let (has_validated) = IPlayerRegistry.check_validated_exercise(
         contract_address=_players_registry,
         account=account,
         workshop=_workshop_id,

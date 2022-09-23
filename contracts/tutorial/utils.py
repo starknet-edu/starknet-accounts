@@ -162,7 +162,17 @@ async def fund_account(toAddr):
 
         pay = data['FUNDING_PAYLOAD']
         calldata=[1, data['TESTNET_ETH'], get_selector_from_name('transfer'), 0, 3, 3, toAddr, data['TRANSFER_AMOUNT'], 0, nonce]
-        hash = invoke_tx_hash(data['TESTNET_ACCOUNT']['ADDRESS'], calldata)
+        exec_selector = get_selector_from_name("__execute__")
+        hash = calculate_transaction_hash_common(
+            tx_hash_prefix=TransactionHashPrefix.INVOKE,
+            version=0,
+            contract_address=data['TESTNET_ACCOUNT']['ADDRESS'],
+            entry_point_selector=exec_selector,
+            calldata=calldata,
+            max_fee=data['MAX_FEE'],
+            chain_id=TESTNET_ID,
+            additional_data=[],
+        )
         (sig_r, sig_s) = sign(hash, data['TESTNET_ACCOUNT']['PRIVATE'])
         pay['signature'] = [str(sig_r), str(sig_s)] 
         pay['calldata'] = [str(i) for i in calldata]
@@ -220,6 +230,7 @@ def get_client():
 def get_account(client):
     if args.testnet: 
         return AccountClient(
+            client=client,
             address=data['TESTNET_ACCOUNT']['ADDRESS'],
             key_pair=KeyPair(
                 public_key=data['TESTNET_ACCOUNT']['PUBLIC'],

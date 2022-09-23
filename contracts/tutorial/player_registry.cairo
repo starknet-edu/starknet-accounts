@@ -35,7 +35,7 @@ func players_ranks(account: felt) -> (rank: felt) {
 // GETTERS
 //
 @view
-func has_validated_exercise{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func check_validated_exercise{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, workshop: felt, exercise: felt
 ) -> (has_validated: felt) {
     let (has_validated) = player_validated_exercise.read(account, workshop, exercise);
