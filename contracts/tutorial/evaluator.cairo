@@ -37,8 +37,10 @@ const SIGNATURE_3 = 'SIGNATURE_3';
 const MULTICALL = 'MULTICALL';
 const MULTISIG = 'MULTISIG';
 const ABSTRACTION = 'ABSTRACTION';
+const FACTORY = 'FACTORY';
 const REWARDS_BASE = 1000000000000000000;
 const ETHEREUM_ADDRESS = 0x1a642f0e3c3af545e7acbd38b07251b3990914f1;
+const FACTORY_CLASS_HASH = 0x620741e2c728b8adfa4dd6a1e895a1819c7cc0af47b36317e4fb8dec34aa1be;
 
 // ///////////////////
 // INTERFACES
@@ -64,6 +66,24 @@ namespace IMultiSig {
     }
 
     func get_owner_confirmed(tx_index: felt, owner: felt) -> (res: felt) {
+    }
+}
+
+@contract_interface
+namespace IFactory {
+    func deploy_contract(
+        contract_class_hash: felt,
+        contract_address_salt: felt,
+        constructor_calldata_len: felt,
+        constructor_calldata: felt*,
+        deploy_from_zero: felt,
+    ) -> (address: felt) {
+    }
+}
+
+@contract_interface
+namespace IFactoried {
+    func state_var() -> (var: felt, own: felt) {
     }
 }
 
@@ -98,6 +118,10 @@ func ethereum_address() -> (res: felt) {
 func multicall_counter(tx_meta: felt) -> (value: felt) {
 }
 
+@storage_var
+func factory_class_hash() -> (res: felt) {
+}
+
 // ///////////////////
 // EVENTS
 // ///////////////////
@@ -115,6 +139,8 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     ex_initializer(_tutorial_erc20_address, _players_registry, WORKSHIP_ID);
     teacher_accounts.write(_first_teacher, 1);
     max_rank.write(100);
+
+    factory_class_hash.write(FACTORY_CLASS_HASH);
 
     let (block_num) = get_block_number();
     private.write(priv);
@@ -389,6 +415,42 @@ func validate_multisig{
 
     payday.emit(address, MULTISIG);
     validate_and_reward(address, MULTISIG, 1000);
+
+    return (TRUE,);
+}
+
+@external
+func validate_factory{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    address: felt
+) -> (success: felt) {
+    alloc_locals;
+    let (caller) = get_caller_address();
+    assert_not_zero(caller);
+
+    let (salt) = get_block_number();
+
+    let (class_hash) = factory_class_hash.read();
+
+    let (local state_var) = get_block_timestamp();
+
+    let (__fp__, _) = get_fp_and_pc();
+
+    let (factoried) = IFactory.deploy_contract(
+        contract_address=caller,
+        contract_class_hash=class_hash,
+        contract_address_salt=salt,
+        constructor_calldata_len=1,
+        constructor_calldata=&state_var,
+        deploy_from_zero=0,
+    );
+
+    let (variable, owner) = IFactoried.state_var(contract_address=factoried);
+
+    assert variable = state_var;
+    assert owner = caller;
+
+    payday.emit(address, FACTORY);
+    validate_and_reward(address, FACTORY, 1500);
 
     return (TRUE,);
 }
