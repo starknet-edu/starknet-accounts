@@ -82,13 +82,6 @@ git clone https://github.com/starknet-edu/starknet-accounts
 cd starknet-accounts
 ```
 
-* Nadai con Soluciones
-
-```bash
-gh repo clone Nadai2010/Nadai-Starknet-Edu-Accounts
-cd Nadai-Starknet-Edu-Accounts
-```
-
 ### Paso 2: configure su entorno
 
 Este tutorial utiliza el [entorno cairo](https://www.cairo-lang.org/docs/quickstart.html), [starknet-devnet](https://github.com/Shard-Labs/starknet-devnet) y [starknet.py](https://github.com/software-mansion/starknet.py).
