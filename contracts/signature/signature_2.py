@@ -1,16 +1,17 @@
 import sys
 import json
 import asyncio
+import os
 
-sys.path.append('./tutorial')
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + "/../tutorial")
 
 from console import blue_strong, blue, red
-from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
+from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client, get_account
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starknet_py.net.models import InvokeFunction
 
-with open("./config.json", "r") as f:
+with open(os.path.abspath(os.path.dirname(__file__)) + "/../config.json", "r") as f:
   data = json.load(f)
 
 async def main():
@@ -19,12 +20,12 @@ async def main():
     blue.print("\t 2) deploy account contract with with '__validate__', '__validate_declare__', '__execute__' entrypoints")
     blue.print("\t 3) sign the calldata expected by the validator")
     blue.print("\t 4) invoke the validator check with the signature in the tx_info field")
-    blue.print("\t 5) call until you hit paydirt\n")
+    blue.print("\t 5) call until you hit payday\n")
 
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
 
-    client = get_client()
+    client = get_account(get_client())
 
     sig2, sig2_addr = await compile_deploy(client=client, contract=data['SIGNATURE_2'], args=[stark_key], account=True)
     
