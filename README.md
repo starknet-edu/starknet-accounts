@@ -118,7 +118,7 @@ python3 contracts/tutorial/evaluator.py
 #### 3) deploy/test hello contract
 
 ```bash
-python3 hello/hello.py
+python3 contracts/hello/hello.py
 ```
 
 The relevant evaluator contract addresses are saved to the `contracts/accounts.json` cache. For devnet testing the devnet contracts `MUST BE DELETED` everytime devnet is restarted. If you would like to disable this constract cache run:

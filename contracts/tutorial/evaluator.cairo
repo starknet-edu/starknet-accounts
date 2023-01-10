@@ -18,7 +18,7 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
 
-from tutorial.tutorial import (
+from contracts.tutorial.tutorial import (
     ex_initializer,
     validate_and_reward,
     teacher_accounts,
