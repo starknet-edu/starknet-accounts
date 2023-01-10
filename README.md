@@ -112,8 +112,7 @@ starknet-devnet
 # NOTE: 
 # - you do not have to deploy the validator for `testnet`
 # - devnet contract details can be found in `contracts/accounts.json`
-cd contracts
-python3 tutorial/evaluator.py
+python3 contracts/tutorial/evaluator.py
 ```
 
 #### 3) deploy/test hello contract
@@ -180,6 +179,13 @@ python3 hello/hello.py --testnet
 
 If you need hints on tutorial solutions you can find them in the `answers` branch. These will include a pytest for you to run, the completed starknet_py, and the completed cairo contract.
 
+### Contracts code and addresses
+
+| Contract code | Contract on voyager   |
+| -------------------------------------------------------------------- | --------- |
+| [Points counter ERC20](contracts/tutorial/token/TDERC20.cairo)          | [0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f](https://goerli.voyager.online/contract/0x0134b89cfb9735a407c58b1a454c40634b600ab1e5a37d8138015f025cc8af4f) |
+| [Evaluator](contracts/tutorial/evaluator.cairo)                               | [0x01bb626c068310ba990db71f7d51fe999c37053d42470aee35698577a44baec6](https://goerli.voyager.online/contract/0x01bb626c068310ba990db71f7d51fe999c37053d42470aee35698577a44baec6) |
+
 ## Working on the tutorial
 
 ### Exercise 1 - [Hello](./contracts/hello)
@@ -187,8 +193,7 @@ If you need hints on tutorial solutions you can find them in the `answers` branc
 Lets deploy and test the simplest account contract we can, [`hello.cairo`](contracts/hello/hello.cairo):
 
 ```bash
-cd contracts
-python3 hello/hello.py
+python3 contracts/hello/hello.py
 ```
 
 The job of an account contract is to execute arbitrary business logic on behalf of a sepcific entity. This is why we see a similar argument pattern for most [execute functions](contracts/hello/hello.cairo#L11).
@@ -206,8 +211,7 @@ Account abstraction cares more about `who`(i.e. the contract address) rather tha
 This leaves the ECDSA signature scheme up to the developer and is typically implemented using the [pedersen hash](https://docs.starknet.io/docs/Hashing/hash-functions) and native Stark curve:
 
 ```bash
-cd contracts
-python3 signature/signature_1.py
+python3 contracts/signature/signature_1.py
 ```
 
 The `signature_1` contract has no concept of a public/private keypair. All the signing was done "off-chain" and yet with account abstraction we're still able to operate a functioning account with a populated signature field.
@@ -221,8 +225,7 @@ Let's couple the signing logic more succintly wtih the account:
 ***HINT: we have not yet implemented a [nonce](https://ethereum.org/en/developers/docs/accounts/#an-account-examined)***
 
 ```bash
-cd contracts
-python3 signature/signature_2.py
+python3 contracts/signature/signature_2.py
 ```
 
 Although we are free to populate the signature field how we please, the StarkNet OS has a specific method for hashing [transaction data](https://docs.starknet.io/docs/Blocks/transactions#transaction-hash-1).
@@ -238,8 +241,7 @@ Discussions on novel account architecutres are popping up more and [more](https:
 For an example of a unique account architecture we will build a contract that implements it's signatures scheme with the `secp256k1` curve and `sha256` instead of our native StarkNet curve:
 
 ```bash
-cd contracts
-python3 signature/signature_3.py
+python3 contracts/signature/signature_3.py
 ```
 
 Follow the prompt and collect 300 points.
@@ -257,8 +259,7 @@ There are many implementations of multicall that allow the caller flexibility in
 Let's implement a multicall account for StarkNet:
 
 ```bash
-cd contracts
-python3 multicall/multicall.py
+python3 contracts/multicall/multicall.py
 ```
 
 Follow the prompt and collect 500 points.
@@ -272,8 +273,7 @@ The amount of signing keys that belong to the account and the ammount of keys re
 Lets implement a `2/3 multisig` account(i.e. 2 signatures are required out of a total 3 signers for a transaction to be executed):
 
 ```bash
-cd contracts
-python3 multisig/multisig.py
+python3 contracts/multisig/multisig.py
 ```
 
 Follow the prompt and collect 1000 points.

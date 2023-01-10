@@ -1,16 +1,17 @@
 import sys
 import json
 import asyncio
+import os
 
-sys.path.append('./tutorial')
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + "/../tutorial")
 
 from console import blue_strong, blue, red
-from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client
+from utils import compile_deploy, invoke_tx_hash, print_n_wait, fund_account, get_evaluator, get_client, get_account
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starknet_py.net.models import InvokeFunction
 
-with open("./config.json", "r") as f:
+with open(os.path.abspath(os.path.dirname(__file__)) + "/../config.json", "r") as f:
   data = json.load(f)
 
 async def main():
@@ -30,14 +31,14 @@ async def main():
     blue.print("\t 9) confirm the tx")
     blue.print("\t 10) execute the tx\n")
 
-    client = get_client()
+    client = get_account(get_client())
 
     #
     # Deploy first signer
     #
     private_key = data['PRIVATE_KEY']
     stark_key = private_to_stark_key(private_key)
-    sig1, sig1_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key], account=True)
+    sig1, sig1_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key], account=True, cache_name="sig1")
     reward_account = await fund_account(sig1_addr)
     if reward_account == "":
       red.print("Account must have ETH to cover transaction fees")
@@ -48,21 +49,21 @@ async def main():
     #
     private_key_2 = private_key + 1
     stark_key_2 = private_to_stark_key(private_key_2)
-    sig2, sig2_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key_2], account=True)
+    sig2, sig2_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key_2], account=True, cache_name="sig2")
     reward_account = await fund_account(sig2_addr)
     
     #
-    # Deploy thrid signer
+    # Deploy third signer
     #
     private_key_3 = private_key + 2
     stark_key_3 = private_to_stark_key(private_key_3)
-    sig3, sig3_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key_3], account=True)
+    sig3, sig3_addr = await compile_deploy(client=client, contract=data['SIGNATURE_BASIC'], args=[stark_key_3], account=True, cache_name="sig3")
     reward_account = await fund_account(sig3_addr)
 
     _, evaluator_address = await get_evaluator(client)
 
     #
-    # Deploy multisig constract
+    # Deploy multisig contract
     #
     _, multi_addr = await compile_deploy(client=client, contract=data['MULTISIG'], args=[[sig1_addr, sig2_addr, sig3_addr]])
     

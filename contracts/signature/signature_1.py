@@ -1,17 +1,18 @@
 import asyncio
 import sys
 import json
+import os
 
-sys.path.append('./tutorial')
+sys.path.append(os.path.abspath(os.path.dirname(__file__)) + "/../tutorial")
 
 from console import blue_strong, blue, red
-from utils import compile_deploy, print_n_wait, get_evaluator, fund_account, get_client
+from utils import compile_deploy, print_n_wait, get_evaluator, fund_account, get_client, get_account
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.crypto.signature.signature import sign
 from starkware.crypto.signature.fast_pedersen_hash import pedersen_hash
 from starknet_py.net.models import InvokeFunction
 
-with open("./config.json", "r") as f:
+with open(os.path.abspath(os.path.dirname(__file__)) + "/../config.json", "r") as f:
   data = json.load(f)
 
 async def main():
@@ -33,8 +34,7 @@ async def main():
     blue.print(f"First account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_1}")
     blue.print(f"Second account abstraction EIP: \n\thttps://eips.ethereum.org/EIPS/eip-{INPUT_2}\n")
 
-    client = get_client()
-
+    client = get_account(get_client())
     sig1, sig1_addr = await compile_deploy(client=client, contract=data['SIGNATURE_1'], account=True)
 
     reward_account = await fund_account(sig1_addr)

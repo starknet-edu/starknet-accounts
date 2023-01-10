@@ -33,7 +33,7 @@ func _is_valid_eth_signature{
     let (__fp__, _) = get_fp_and_pc();
 
     //
-    // ACTION ITEM 1: format the signature and msg_hash so it can be verified vi `verify_eth_signature_uiunt256`
+    // ACTION ITEM 1: format the signature and msg_hash so it can be verified vi `verify_eth_signature_uint256`
     // - reference: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/cairo_secp/signature.cairo
     //
     let sig_v: felt = // CODE HERE
