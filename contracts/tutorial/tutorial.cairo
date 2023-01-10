@@ -7,8 +7,8 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math import assert_not_zero
 from starkware.starknet.common.syscalls import get_caller_address
 
-from tutorial.ITutorial import ITutorial
-from tutorial.IPlayerRegistry import IPlayerRegistry
+from contracts.tutorial.ITutorial import ITutorial
+from contracts.tutorial.IPlayerRegistry import IPlayerRegistry
 
 //
 // CONSTANTS

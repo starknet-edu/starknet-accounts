@@ -4,6 +4,7 @@
 # - deploy 'TDERC20'
 # - deploy 'evaluator'
  ####
+import os
 import sys
 import json
 import asyncio
@@ -13,7 +14,7 @@ sys.path.append('./')
 from console import blue_strong, blue
 from utils import compile_deploy, get_client, get_account, devnet_height_check
 
-with open("config.json", "r") as f:
+with open(os.path.abspath(os.path.dirname(__file__)) + "/../config.json", "r") as f:
   data = json.load(f)
 
 async def main():
