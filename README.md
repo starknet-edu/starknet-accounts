@@ -252,7 +252,7 @@ Now that we have implemented the vanilla ECDSA signing mechanisms lets see what 
 
 A `multicall` aggregates the results from multiple contract calls. This reduces the number of seperate API Client or JSON-RPC requests that need to be sent. In addition it acts as an `atomic` invocation where all values are returned for the same block.
 
-Popular wallet providers like Argent use this design to implement [account contracts](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) on StarkNet to accomodate a multicall or a single call with one scheme.
+Popular wallet providers like [Argent](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) and [Braavos](https://github.com/myBraavos/braavos-account-cairo) use this design to implement account contracts on StarkNet to accomodate a multicall or a single call with one scheme.
 
 There are many implementations of multicall that allow the caller flexibility in how they distribute and batch their transactions.
 
@@ -266,7 +266,7 @@ Follow the prompt and collect 500 points.
 
 ### Exercise 4 - [MultiSig](./contracts/multisig)
 
-A `multisig` or multiple signature wallet allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
+A `multisig` or multiple signature wallet like [Braavos](https://github.com/myBraavos/braavos-account-cairo) allows you to share security accross multiple signinging entities. You can think of them like bank vaults in that they require more than one key to unlock, or in this case authorize a transaction.
 
 The amount of signing keys that belong to the account and the ammount of keys required to authorize a transaction are purely implementation details.
 
