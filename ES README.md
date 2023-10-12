@@ -254,7 +254,7 @@ Ahora que hemos implementado los mecanismos de firma de ECDSA vanilla, ¡veamos 
 
 Una `multillamada` agrega los resultados de múltiples llamadas de contrato. Esto reduce la cantidad de solicitudes separadas de API Client o JSON-RPC que deben enviarse. Además, actúa como una invocación `atómica` donde se devuelven todos los valores para el mismo bloque.
 
-Los proveedores de billeteras populares como Argent usan este diseño para implementar [contratos de cuenta](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) en StarkNet para acomodar una multillamada o una sola llamar con un esquema.
+Los proveedores de billeteras populares como Argent y Braavos usan este diseño para implementar [contratos de cuenta](https://github.com/argentlabs/argent-contracts-starknet/blob/develop/contracts/ArgentAccount.cairo) en StarkNet para acomodar una multillamada o una sola llamar con un esquema.
 
 Hay muchas implementaciones de multillamadas que permiten a la persona que llama flexibilidad en la forma en que distribuyen y agrupan sus transacciones.
 
